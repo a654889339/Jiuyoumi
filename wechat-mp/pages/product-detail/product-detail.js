@@ -70,4 +70,17 @@ Page({
   goCart() {
     wx.navigateTo({ url: '/pages/cart/cart' });
   },
+
+  goConsult() {
+    var p = this.data.product;
+    var msg = '';
+    if (p) {
+      msg = '我想咨询【' + (p.name || '该商品') + '】';
+      if (p.price != null) msg += '（¥' + p.price + '）';
+      if (p.description) msg += '：' + p.description;
+    }
+    wx.navigateTo({
+      url: '/pages/chat/chat?autoMsg=' + encodeURIComponent(msg),
+    });
+  },
 });

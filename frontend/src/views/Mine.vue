@@ -30,6 +30,7 @@
     </van-cell-group>
 
     <van-cell-group inset class="menu-group">
+      <van-cell title="在线客服" icon="chat-o" is-link @click="openCustomerService" />
       <van-cell title="关于九柚米" icon="info-o" is-link />
     </van-cell-group>
 
@@ -42,12 +43,17 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, inject } from 'vue';
 import { useUserStore } from '@/stores/user';
 import { useRouter } from 'vue-router';
 
 const userStore = useUserStore();
 const router = useRouter();
+const chatWidgetRef = inject('chatWidget', ref(null));
+
+const openCustomerService = () => {
+  if (chatWidgetRef?.value) chatWidgetRef.value.openWithAutoMessage('');
+};
 
 const profileSubtitle = computed(() => {
   const u = userStore.userInfo;

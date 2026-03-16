@@ -52,6 +52,10 @@ Page({
     my.navigateTo({ url: '/pages/address/address' });
   },
 
+  goChat() {
+    my.navigateTo({ url: '/pages/chat/chat' });
+  },
+
   goEditProfile() {
     my.navigateTo({ url: '/pages/profile-edit/profile-edit' });
   },

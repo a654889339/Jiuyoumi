@@ -41,3 +41,14 @@ export const homeConfigApi = {
   list: (params) => request.get('/home-config', { params }),
   tabbar: () => request.get('/home-config', { params: { section: 'tabbar' } }),
 };
+
+export const messageApi = {
+  mine: () => request.get('/messages/mine'),
+  send: (data) => request.post('/messages/send', data),
+  unread: () => request.get('/messages/unread'),
+  uploadImage: (file) => {
+    const fd = new FormData();
+    fd.append('image', file);
+    return request.post('/messages/upload-image', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+  },
+};

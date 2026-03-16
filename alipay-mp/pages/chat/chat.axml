@@ -1,0 +1,46 @@
+<view class="chat-page">
+  <scroll-view
+    class="chat-body"
+    scroll-y
+    scroll-into-view="{{scrollToId}}"
+    scroll-with-animation
+  >
+    <view a:if="{{!messages.length && !loading}}" class="chat-empty">暂无消息，发送第一条消息开始对话吧</view>
+    <view
+      a:for="{{messages}}"
+      a:key="id"
+      id="msg-{{item.id}}"
+      class="chat-msg {{item.sender === 'user' ? 'msg-right' : 'msg-left'}}"
+    >
+      <view class="avatar {{item.sender === 'admin' ? 'avatar-admin' : 'avatar-user'}}">
+        {{item.sender === 'admin' ? '客' : '我'}}
+      </view>
+      <view class="bubble-wrap">
+        <image
+          a:if="{{item.type === 'image'}}"
+          class="bubble-img"
+          src="{{item.imageUrl}}"
+          mode="widthFix"
+          onTap="previewImage"
+          data-url="{{item.imageUrl}}"
+        />
+        <text a:else class="bubble-text">{{item.content}}</text>
+        <text class="bubble-time">{{item.timeText}}</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view class="chat-footer">
+    <input
+      class="chat-input"
+      placeholder="输入消息..."
+      value="{{inputText}}"
+      disabled="{{!isLogin}}"
+      onInput="onInput"
+      onConfirm="sendMessage"
+      focus="{{inputFocus}}"
+    />
+    <button class="send-btn" onTap="sendMessage" disabled="{{sending || !inputText.trim() || !isLogin}}">发送</button>
+  </view>
+  <view a:if="{{!isLogin}}" class="login-hint" onTap="goLogin">请先登录后发送消息</view>
+</view>

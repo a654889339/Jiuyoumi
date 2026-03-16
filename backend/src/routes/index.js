@@ -5,10 +5,12 @@ const orderRoutes = require('./order');
 const addressRoutes = require('./address');
 const cartRoutes = require('./cart');
 const homeConfigRoutes = require('./homeConfig');
+const messageRoutes = require('./message');
 
 const router = Router();
 
 router.use('/auth', authRoutes);
+router.use('/messages', messageRoutes);
 router.use('/products', productRoutes);
 router.use('/orders', orderRoutes);
 router.use('/addresses', addressRoutes);

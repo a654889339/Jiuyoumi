@@ -7,6 +7,10 @@ const OrderItem = require('./OrderItem');
 const Address = require('./Address');
 const Cart = require('./Cart');
 const HomeConfig = require('./HomeConfig');
+const Message = require('./Message');
+
+User.hasMany(Message, { foreignKey: 'userId', as: 'messages' });
+Message.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
 ProductCategory.hasMany(Product, { foreignKey: 'categoryId', as: 'products' });
 Product.belongsTo(ProductCategory, { foreignKey: 'categoryId', as: 'category' });
@@ -26,7 +30,7 @@ User.hasMany(Cart, { foreignKey: 'userId', as: 'cartItems' });
 Cart.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 Cart.belongsTo(Product, { foreignKey: 'productId', as: 'product' });
 
-const models = { User, Product, ProductCategory, Order, OrderItem, Address, Cart, HomeConfig };
+const models = { User, Product, ProductCategory, Order, OrderItem, Address, Cart, HomeConfig, Message };
 
 const ADMIN_PASSWORD = 'Jiuyoumi@2024admin';
 

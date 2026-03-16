@@ -3,11 +3,13 @@
   <van-tabbar v-if="showTabbar" route active-color="var(--jym-primary)">
     <van-tabbar-item v-for="(item, i) in tabbarItems" :key="item.path || i" :to="item.path" :icon="item.icon">{{ item.title }}</van-tabbar-item>
   </van-tabbar>
+  <ChatWidget ref="chatWidgetRef" :hide-fab="hideChatFab" />
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, provide } from 'vue';
 import { useRoute } from 'vue-router';
+import ChatWidget from '@/components/ChatWidget.vue';
 import { homeConfigApi } from '@/api';
 
 const route = useRoute();
@@ -46,6 +48,16 @@ const showTabbar = computed(() => {
     return route.path.startsWith(r);
   });
 });
+
+const hideChatFab = computed(() => {
+  const p = route.path;
+  if (p === '/' || p === '/products' || p === '/mine') return true;
+  if (p.startsWith('/login') || p.startsWith('/register')) return true;
+  return false;
+});
+
+const chatWidgetRef = ref(null);
+provide('chatWidget', chatWidgetRef);
 </script>
 
 <style scoped>

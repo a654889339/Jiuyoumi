@@ -10,9 +10,8 @@ Page({
   onLoad() {},
 
   onShow() {
-    if (typeof this.getTabBar === 'function') {
-      this.getTabBar().setData({ selected: 3 });
-    }
+    var tabBar = typeof this.getTabBar === 'function' ? this.getTabBar() : null;
+    if (tabBar) tabBar.setData({ selected: 3 });
     this.checkLogin();
   },
 
@@ -54,6 +53,10 @@ Page({
 
   goAddress() {
     wx.navigateTo({ url: '/pages/address/address' });
+  },
+
+  goChat() {
+    wx.navigateTo({ url: '/pages/chat/chat' });
   },
 
   goEditProfile() {

@@ -20,10 +20,8 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5101,
     proxy: {
-      '/api': {
-        target: 'http://localhost:5102',
-        changeOrigin: true,
-      },
+      '/api': { target: 'http://localhost:5102', changeOrigin: true },
+      '/uploads': { target: 'http://localhost:5102', changeOrigin: true },
     },
   },
 });

@@ -60,6 +60,11 @@
       <text class="menu-text">地址管理</text>
       <text class="menu-arrow">›</text>
     </view>
+    <view class="menu-item" onTap="goChat">
+      <text class="menu-icon">💬</text>
+      <text class="menu-text">在线客服</text>
+      <text class="menu-arrow">›</text>
+    </view>
   </view>
 
   <!-- 退出登录 -->

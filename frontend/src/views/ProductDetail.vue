@@ -29,6 +29,10 @@
             <van-icon name="shopping-cart-o" size="22" />
             <span>购物车</span>
           </div>
+          <div class="icon-btn" @click="onConsult">
+            <van-icon name="chat-o" size="22" />
+            <span>咨询</span>
+          </div>
         </div>
         <van-button type="warning" round size="normal" @click="addToCart">加入购物车</van-button>
         <van-button type="danger" round size="normal" color="linear-gradient(135deg, #667eea, #764ba2)" @click="buyNow">立即购买</van-button>
@@ -38,13 +42,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, inject } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { showToast } from 'vant';
 import { productApi, cartApi } from '@/api';
 
 const route = useRoute();
 const router = useRouter();
+const chatWidgetRef = inject('chatWidget', ref(null));
 const loading = ref(true);
 const product = ref({});
 
@@ -66,6 +71,13 @@ const addToCart = async () => {
 const buyNow = () => {
   if (!localStorage.getItem('jym_token')) { router.push('/login'); return; }
   router.push({ path: '/checkout', query: { productId: product.value.id, qty: 1 } });
+};
+
+const onConsult = () => {
+  const p = product.value;
+  const msg = p.id ? `我想咨询【${p.name || '该商品'}】${p.price != null ? '（¥' + p.price + '）' : ''}${p.description ? '：' + p.description : ''}` : '';
+  if (chatWidgetRef?.value) chatWidgetRef.value.openWithAutoMessage(msg);
+  else router.push('/mine');
 };
 
 onMounted(async () => {
