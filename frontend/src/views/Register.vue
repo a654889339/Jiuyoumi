@@ -42,7 +42,7 @@ const handleRegister = async () => {
     userStore.setAuth(d.token, d.user);
     showToast('注册成功');
     router.replace('/');
-  } catch (err) { showToast(err.message || '注册失败'); }
+  } catch (err) { showToast(err?.message || '注册失败'); }
   finally { loading.value = false; }
 };
 </script>

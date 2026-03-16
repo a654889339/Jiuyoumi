@@ -39,7 +39,7 @@ const handleLogin = async () => {
     const redirect = route.query.redirect;
     if (redirect && typeof redirect === 'string' && redirect.startsWith('/')) router.replace(decodeURIComponent(redirect));
     else router.replace('/');
-  } catch (err) { showToast(err.message || '登录失败'); }
+  } catch (err) { showToast(err?.message || '登录失败'); }
   finally { loading.value = false; }
 };
 </script>

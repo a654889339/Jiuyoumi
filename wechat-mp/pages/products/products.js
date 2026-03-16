@@ -21,9 +21,8 @@ Page({
   },
 
   onShow() {
-    if (typeof this.getTabBar === 'function') {
-      this.getTabBar().setData({ selected: 1 });
-    }
+    var tabBar = typeof this.getTabBar === 'function' ? this.getTabBar() : null;
+    if (tabBar) tabBar.setData({ selected: 1 });
   },
 
   async loadCategories() {
