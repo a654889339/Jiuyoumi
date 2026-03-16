@@ -1,0 +1,31 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/products/products",
+    "pages/product-detail/product-detail",
+    "pages/orders/orders",
+    "pages/order-detail/order-detail",
+    "pages/mine/mine",
+    "pages/cart/cart",
+    "pages/checkout/checkout",
+    "pages/login/login",
+    "pages/address/address",
+    "pages/address-edit/address-edit",
+    "pages/profile-edit/profile-edit"
+  ],
+  "tabBar": {
+    "textColor": "#86868b",
+    "selectedColor": "#667eea",
+    "backgroundColor": "#ffffff",
+    "items": [
+      { "pagePath": "pages/index/index", "name": "首页" },
+      { "pagePath": "pages/products/products", "name": "商品" },
+      { "pagePath": "pages/orders/orders", "name": "订单" },
+      { "pagePath": "pages/mine/mine", "name": "我的" }
+    ]
+  },
+  "window": {
+    "defaultTitle": "九柚米",
+    "titleBarColor": "#667eea"
+  }
+}

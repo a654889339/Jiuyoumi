@@ -1,0 +1,28 @@
+<view class="page-address">
+  <view class="address-list" a:if="{{addresses.length > 0}}">
+    <view class="address-card card" a:for="{{addresses}}" a:key="id" onTap="selectAddress" data-addr="{{item}}">
+      <view class="addr-main">
+        <view class="addr-top">
+          <text class="addr-name">{{item.contactName || item.name}}</text>
+          <text class="addr-phone">{{item.contactPhone || item.phone}}</text>
+          <text class="addr-default" a:if="{{item.isDefault}}">默认</text>
+        </view>
+        <text class="addr-detail">{{item.fullAddress || item.province}}{{item.city}}{{item.district}}{{item.detail || item.address}}</text>
+      </view>
+      <view class="addr-actions" catchTap="">
+        <text class="addr-action" catchTap="goEdit" data-id="{{item.id}}">编辑</text>
+        <text class="addr-action" catchTap="setDefault" data-id="{{item.id}}" a:if="{{!item.isDefault}}">设为默认</text>
+        <text class="addr-action addr-delete" catchTap="deleteAddress" data-id="{{item.id}}">删除</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty" a:if="{{!loading && addresses.length === 0}}">
+    <text class="empty-icon">📍</text>
+    <text class="empty-text">暂无收货地址</text>
+  </view>
+
+  <view class="add-wrap">
+    <button class="btn-add" onTap="goAdd">+ 新增地址</button>
+  </view>
+</view>

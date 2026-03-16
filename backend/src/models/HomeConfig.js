@@ -1,0 +1,55 @@
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
+
+const HomeConfig = sequelize.define('HomeConfig', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  section: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
+  },
+  title: {
+    type: DataTypes.STRING(200),
+    defaultValue: '',
+  },
+  desc: {
+    type: DataTypes.TEXT,
+    defaultValue: '',
+  },
+  icon: {
+    type: DataTypes.STRING(100),
+    defaultValue: '',
+  },
+  imageUrl: {
+    type: DataTypes.STRING(500),
+    defaultValue: '',
+  },
+  path: {
+    type: DataTypes.STRING(200),
+    defaultValue: '',
+  },
+  color: {
+    type: DataTypes.STRING(200),
+    defaultValue: '',
+  },
+  price: {
+    type: DataTypes.STRING(20),
+    defaultValue: '',
+  },
+  sortOrder: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+  },
+  status: {
+    type: DataTypes.ENUM('active', 'inactive'),
+    defaultValue: 'active',
+  },
+}, {
+  tableName: 'home_configs',
+  timestamps: true,
+});
+
+module.exports = HomeConfig;

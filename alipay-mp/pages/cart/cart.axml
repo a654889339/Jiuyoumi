@@ -1,0 +1,45 @@
+<view class="page-cart">
+  <view class="cart-list" a:if="{{cartItems.length > 0}}">
+    <view
+      class="cart-item-wrap {{slideItemId === item.id ? 'slide-open' : ''}}"
+      a:for="{{cartItems}}"
+      a:key="id"
+      onTouchStart="touchStart"
+      onTouchEnd="touchEnd"
+      data-id="{{item.id}}"
+    >
+      <view class="cart-item">
+        <image class="cart-img" src="{{item.imageUrl || item.image || item.product.imageUrl}}" mode="aspectFill" />
+        <view class="cart-info">
+          <text class="cart-name">{{item.name || item.productName || item.product.name}}</text>
+          <view class="cart-bottom">
+            <text class="price">¥{{item.price}}</text>
+            <view class="qty-stepper">
+              <view class="qty-btn" onTap="changeQty" data-id="{{item.id}}" data-action="minus">−</view>
+              <text class="qty-num">{{item.quantity}}</text>
+              <view class="qty-btn" onTap="changeQty" data-id="{{item.id}}" data-action="add">+</view>
+            </view>
+          </view>
+        </view>
+      </view>
+      <view class="delete-btn" onTap="onDeleteItem" data-id="{{item.id}}">
+        <text>删除</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty" a:if="{{!loading && cartItems.length === 0}}">
+    <text class="empty-icon">🛒</text>
+    <text class="empty-text">购物车还是空的</text>
+    <navigator url="/pages/products/products" open-type="switchTab" class="empty-link">去逛逛</navigator>
+  </view>
+
+  <!-- 底部结算栏 -->
+  <view class="bottom-bar" a:if="{{cartItems.length > 0}}">
+    <view class="total-info">
+      <text class="total-label">合计:</text>
+      <text class="price total-price">¥{{totalAmount}}</text>
+    </view>
+    <button class="btn-checkout" onTap="goCheckout">去结算 ({{cartItems.length}})</button>
+  </view>
+</view>

@@ -1,0 +1,78 @@
+<view class="page-index">
+  <!-- Banner -->
+  <view class="banner">
+    <view class="banner-content">
+      <text class="brand-name">九柚米</text>
+      <text class="brand-sub">品质生活 · 精选好物</text>
+    </view>
+  </view>
+
+  <!-- 快捷导航 -->
+  <view class="nav-grid card">
+    <view class="nav-item" bindtap="goProducts">
+      <view class="nav-icon icon-all">🛍</view>
+      <text class="nav-text">全部商品</text>
+    </view>
+    <view class="nav-item" bindtap="goNew">
+      <view class="nav-icon icon-new">🆕</view>
+      <text class="nav-text">新品</text>
+    </view>
+    <view class="nav-item" bindtap="goSale">
+      <view class="nav-icon icon-sale">🏷</view>
+      <text class="nav-text">特惠</text>
+    </view>
+    <view class="nav-item" bindtap="goCart">
+      <view class="nav-icon icon-cart">🛒</view>
+      <text class="nav-text">购物车</text>
+    </view>
+  </view>
+
+  <!-- 热门商品 -->
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">热门商品</text>
+      <text class="section-more" bindtap="goProducts">查看全部 ›</text>
+    </view>
+    <scroll-view class="hot-scroll" scroll-x="true" enhanced="true" show-scrollbar="{{false}}">
+      <view class="hot-list">
+        <view class="hot-card" wx:for="{{hotProducts}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
+          <image class="hot-img" src="{{item.imageUrl || item.image}}" mode="aspectFill" />
+          <view class="hot-info">
+            <text class="hot-name">{{item.name}}</text>
+            <text class="price">¥{{item.price}}</text>
+          </view>
+        </view>
+        <view class="hot-card hot-card-placeholder" wx:if="{{hotProducts.length === 0 && !loading}}">
+          <text class="empty-tip">暂无商品</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 推荐区域 -->
+  <view class="section">
+    <text class="section-title">为你推荐</text>
+    <view class="rec-grid">
+      <view class="rec-item rec-gift">
+        <text class="rec-icon">🎁</text>
+        <text class="rec-label">新人礼包</text>
+        <text class="rec-desc">注册即享优惠</text>
+      </view>
+      <view class="rec-item rec-quality">
+        <text class="rec-icon">✅</text>
+        <text class="rec-label">品质保障</text>
+        <text class="rec-desc">正品保证</text>
+      </view>
+      <view class="rec-item rec-speed">
+        <text class="rec-icon">🚀</text>
+        <text class="rec-label">极速发货</text>
+        <text class="rec-desc">下单即发</text>
+      </view>
+      <view class="rec-item rec-service">
+        <text class="rec-icon">💬</text>
+        <text class="rec-label">售后无忧</text>
+        <text class="rec-desc">7天无理由退换</text>
+      </view>
+    </view>
+  </view>
+</view>

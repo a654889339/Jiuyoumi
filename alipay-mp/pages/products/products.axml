@@ -1,0 +1,51 @@
+<view class="page-products">
+  <!-- 搜索框 -->
+  <view class="search-bar">
+    <view class="search-wrap">
+      <text class="search-icon">🔍</text>
+      <input class="search-input" placeholder="搜索商品" value="{{keyword}}" onConfirm="onSearch" confirm-type="search" />
+      <text class="search-clear" a:if="{{keyword}}" onTap="onClearSearch">✕</text>
+    </view>
+  </view>
+
+  <!-- 分类Tab -->
+  <scroll-view class="cat-scroll" scroll-x="{{true}}">
+    <view class="cat-list">
+      <view
+        class="cat-item {{activeCategory === item.id ? 'cat-active' : ''}}"
+        a:for="{{categories}}"
+        a:key="id"
+        onTap="switchCategory"
+        data-id="{{item.id}}"
+      >
+        {{item.name}}
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 商品列表 -->
+  <view class="product-grid" a:if="{{products.length > 0}}">
+    <view class="product-card" a:for="{{products}}" a:key="id" onTap="goDetail" data-id="{{item.id}}">
+      <image class="product-img" src="{{item.imageUrl || item.image}}" mode="aspectFill" />
+      <view class="product-info">
+        <text class="product-name">{{item.name}}</text>
+        <view class="product-bottom">
+          <text class="price">¥{{item.price}}</text>
+          <text class="product-sales" a:if="{{item.sales}}">已售{{item.sales}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty" a:if="{{!loading && products.length === 0}}">
+    <text class="empty-icon">📦</text>
+    <text class="empty-text">暂无商品</text>
+  </view>
+
+  <view class="loading-more" a:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+  <view class="no-more" a:if="{{!hasMore && products.length > 0}}">
+    <text>— 没有更多了 —</text>
+  </view>
+</view>

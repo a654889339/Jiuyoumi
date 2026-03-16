@@ -1,0 +1,100 @@
+<template>
+  <div class="mine-page">
+    <div class="profile-header" @click="onProfileHeaderClick">
+      <div class="avatar">
+        <img v-if="userStore.isLoggedIn && userStore.userInfo?.avatar" :src="userStore.userInfo.avatar" class="avatar-img" />
+        <span v-else-if="userStore.isLoggedIn && (userStore.userInfo?.nickname || userStore.userInfo?.username)" class="avatar-initial">{{ (userStore.userInfo?.nickname || userStore.userInfo?.username).charAt(0) }}</span>
+        <van-icon v-else name="user-o" size="36" color="#fff" />
+      </div>
+      <div class="profile-info" v-if="userStore.isLoggedIn">
+        <h3>{{ userStore.userInfo?.nickname || userStore.userInfo?.username || '用户' }}</h3>
+        <p>{{ profileSubtitle }}</p>
+      </div>
+      <div class="profile-info" v-else>
+        <h3>点击登录</h3>
+        <p>登录享更多权益</p>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-item" v-for="s in stats" :key="s.label" @click="$router.push(s.path || '/orders')">
+        <span class="stat-num">{{ s.value }}</span>
+        <span class="stat-label">{{ s.label }}</span>
+      </div>
+    </div>
+
+    <van-cell-group inset class="menu-group">
+      <van-cell title="我的订单" icon="orders-o" is-link to="/orders" />
+      <van-cell title="购物车" icon="shopping-cart-o" is-link to="/cart" />
+      <van-cell title="地址管理" icon="location-o" is-link to="/address" />
+    </van-cell-group>
+
+    <van-cell-group inset class="menu-group">
+      <van-cell title="关于九柚米" icon="info-o" is-link />
+    </van-cell-group>
+
+    <div class="logout-area" v-if="userStore.isLoggedIn">
+      <van-button block plain type="default" class="logout-btn" @click="handleLogout">退出登录</van-button>
+    </div>
+
+    <div style="height: 60px;"></div>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { useUserStore } from '@/stores/user';
+import { useRouter } from 'vue-router';
+
+const userStore = useUserStore();
+const router = useRouter();
+
+const profileSubtitle = computed(() => {
+  const u = userStore.userInfo;
+  if (!u) return '';
+  if (u.phone) return u.phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
+  return u.email || '';
+});
+
+const onProfileHeaderClick = () => {
+  if (userStore.isLoggedIn) router.push('/mine/profile');
+  else router.push('/login');
+};
+
+const stats = [
+  { label: '待支付', value: 0, path: '/orders' },
+  { label: '已发货', value: 0, path: '/orders' },
+  { label: '待评价', value: 0, path: '/orders' },
+  { label: '售后', value: 0, path: '/orders' },
+];
+
+onMounted(async () => {
+  if (userStore.isLoggedIn && !userStore.userInfo) {
+    try { await userStore.fetchProfile(); } catch { userStore.logout(); }
+  }
+});
+
+const handleLogout = () => { userStore.logout(); router.push('/'); };
+</script>
+
+<style scoped>
+.mine-page { background: var(--jym-bg); min-height: 100vh; }
+.profile-header { background: linear-gradient(160deg, #667eea 0%, #764ba2 100%); padding: 48px 24px 36px; display: flex; align-items: center; gap: 16px; cursor: pointer; }
+.avatar { width: 64px; height: 64px; border-radius: 50%; background: rgba(255,255,255,0.12); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
+.avatar-img { width: 100%; height: 100%; object-fit: cover; }
+.avatar-initial { font-size: 24px; font-weight: 700; color: #fff; }
+.profile-info h3 { color: #fff; font-size: 20px; font-weight: 700; margin-bottom: 5px; }
+.profile-info p { color: rgba(255,255,255,0.6); font-size: 14px; }
+
+.stats-row { display: flex; background: #fff; padding: 20px 0; margin-bottom: 8px; }
+.stat-item { flex: 1; text-align: center; display: flex; flex-direction: column; gap: 5px; cursor: pointer; }
+.stat-num { font-size: 20px; font-weight: 700; color: var(--jym-dark); }
+.stat-label { font-size: 12px; color: var(--jym-text-secondary); }
+
+.menu-group { margin: 0 12px 8px !important; border-radius: var(--jym-radius) !important; overflow: hidden; }
+.menu-group :deep(.van-cell) { padding: 15px 20px; }
+.menu-group :deep(.van-cell__title) { font-size: 15px; font-weight: 500; }
+
+.logout-area { padding: 24px 20px; }
+.logout-btn { border-radius: var(--jym-radius-sm) !important; font-size: 15px !important; color: var(--jym-text-secondary) !important; }
+</style>

@@ -1,0 +1,36 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/products/products",
+    "pages/product-detail/product-detail",
+    "pages/orders/orders",
+    "pages/order-detail/order-detail",
+    "pages/mine/mine",
+    "pages/cart/cart",
+    "pages/checkout/checkout",
+    "pages/login/login",
+    "pages/address/address",
+    "pages/address-edit/address-edit",
+    "pages/profile-edit/profile-edit"
+  ],
+  "tabBar": {
+    "color": "#86868b",
+    "selectedColor": "#667eea",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/index/index", "text": "首页", "iconPath": "assets/tab-home.png", "selectedIconPath": "assets/tab-home-active.png" },
+      { "pagePath": "pages/products/products", "text": "商品", "iconPath": "assets/tab-product.png", "selectedIconPath": "assets/tab-product-active.png" },
+      { "pagePath": "pages/orders/orders", "text": "订单", "iconPath": "assets/tab-order.png", "selectedIconPath": "assets/tab-order-active.png" },
+      { "pagePath": "pages/mine/mine", "text": "我的", "iconPath": "assets/tab-mine.png", "selectedIconPath": "assets/tab-mine-active.png" }
+    ]
+  },
+  "window": {
+    "backgroundTextStyle": "dark",
+    "navigationBarBackgroundColor": "#667eea",
+    "navigationBarTitleText": "九柚米",
+    "navigationBarTextStyle": "white"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

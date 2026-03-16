@@ -1,0 +1,19 @@
+<view class="page-profile-edit">
+  <view class="form-card card">
+    <view class="form-item">
+      <text class="form-label">昵称</text>
+      <input class="form-input" placeholder="请输入昵称" value="{{nickname}}" onInput="onNicknameInput" />
+    </view>
+
+    <view class="form-item">
+      <text class="form-label">手机号</text>
+      <input class="form-input" type="number" maxlength="11" placeholder="请输入手机号" value="{{phone}}" onInput="onPhoneInput" />
+    </view>
+  </view>
+
+  <view class="save-wrap">
+    <button class="btn-save" onTap="save" disabled="{{saving}}">
+      {{saving ? '保存中...' : '保存'}}
+    </button>
+  </view>
+</view>
