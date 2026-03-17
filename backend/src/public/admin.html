@@ -368,21 +368,20 @@ tr:hover td { background: #f9fafb; }
       <input type="text" id="pCategory" placeholder="例如: 水果, 零食 (输入分类名或ID)">
     </div>
     <div class="form-group">
-      <label>封面图 (coverImage)</label>
-      <input type="text" id="pCoverImage" placeholder="https://... 或通过下方上传">
+      <label>封面图 <span style="color:#DC2626;font-size:12px">（必填，仅图片）</span></label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="text" id="pCoverImage" placeholder="点击右侧按钮上传封面图" style="flex:1" readonly>
+        <label class="btn btn-sm" style="background:var(--primary);color:#fff;border:none;cursor:pointer;padding:8px 16px;border-radius:6px;font-size:13px;white-space:nowrap">
+          上传封面<input type="file" accept="image/*" style="display:none" onchange="uploadProductCover(this)">
+        </label>
+      </div>
+      <img id="pCoverPreview" style="max-width:200px;max-height:120px;margin-top:8px;border-radius:8px;display:none;border:1px solid #eee">
     </div>
     <div class="form-group">
-      <label>媒体文件（图片/视频）</label>
-      <div class="media-upload-zone" id="mediaUploadZone">
-        <div class="media-upload-loading" id="mediaUploadLoading">
-          <div class="media-upload-spinner"></div>
-          <span id="mediaUploadStatus">上传中...</span>
-        </div>
-        <input type="file" id="mediaFileInput" accept="image/*,video/*" multiple style="display:none" onchange="handleMediaUpload(this.files)">
-        <button class="btn btn-outline btn-sm" id="mediaUploadBtn" onclick="document.getElementById('mediaFileInput').click()">📁 选择文件上传</button>
-        <span style="font-size:12px;color:var(--text-secondary);margin-left:8px">支持图片和视频，可多选</span>
-      </div>
-      <div class="media-preview-list" id="mediaPreviewList"></div>
+      <h4 style="margin:12px 0 8px;color:var(--primary);font-size:14px">媒体列表 (视频/图片卡片)</h4>
+      <p style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">点击「添加媒体」，选择类型（图片/视频）；视频需上传封面图与视频文件。</p>
+      <div id="productMediaItemsList"></div>
+      <button type="button" class="btn btn-outline btn-sm" style="background:#059669;color:#fff;border-color:#059669;margin-top:8px" onclick="addProductMediaItem()">+ 添加媒体</button>
     </div>
     <div class="form-group">
       <label>状态</label>
@@ -418,6 +417,12 @@ tr:hover td { background: #f9fafb; }
       <button class="btn btn-outline" onclick="closeModal('favoriteUsersModal')">关闭</button>
     </div>
   </div>
+</div>
+
+<!-- Product media upload overlay -->
+<div id="productUploadOverlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:10000;align-items:center;justify-content:center;flex-direction:column;gap:12px">
+  <div class="media-upload-spinner"></div>
+  <span id="productUploadOverlayText" style="color:#fff;font-size:14px">上传中...</span>
 </div>
 
 <!-- User Detail Modal -->
@@ -692,8 +697,7 @@ async function submitTracking() {
 
 /* ── Products ── */
 var allProducts = [];
-var productUploadedImages = [];
-var productUploadedVideos = [];
+var productMediaItems = [];
 
 async function loadProducts() {
   var tbody = document.getElementById('productTableBody');
@@ -729,6 +733,7 @@ function renderProducts(products) {
       '<td><button class="btn btn-sm btn-outline" onclick="showFavoriteUsers(' + p.id + ',' + favCount + ')">' + favCount + ' ❤️</button></td>' +
       '<td class="flex gap-2">' +
         '<button class="btn btn-sm btn-outline" onclick="editProduct(' + p.id + ')">编辑</button>' +
+        '<button class="btn btn-sm ' + (p.status === 'active' ? 'btn-outline' : 'btn-primary') + '" onclick="toggleProductStatus(' + p.id + ',\'' + p.status + '\')">' + (p.status === 'active' ? '禁用' : '启用') + '</button>' +
         '<button class="btn btn-sm btn-danger" onclick="deleteProduct(' + p.id + ',\'' + esc(p.name).replace(/'/g, "\\'") + '\')">删除</button>' +
       '</td>' +
     '</tr>';
@@ -745,23 +750,19 @@ function openProductModal(product) {
   document.getElementById('pStock').value = (product && product.stock != null) ? product.stock : '';
   document.getElementById('pCategory').value = (product && (product.categoryId || product.category)) || '';
   document.getElementById('pCoverImage').value = (product && (product.coverImage || product.mainImage || product.image)) || '';
+  var coverPreview = document.getElementById('pCoverPreview');
+  if (product && product.coverImage) { coverPreview.src = product.coverImage; coverPreview.style.display = 'block'; } else { coverPreview.style.display = 'none'; }
   document.getElementById('pStatus').value = (product && product.status) || 'active';
 
-  productUploadedImages = [];
-  productUploadedVideos = [];
-  if (product) {
+  productMediaItems = [];
+  if (product && product.mediaItems) {
     try {
-      var imgs = product.images;
-      if (typeof imgs === 'string') imgs = JSON.parse(imgs);
-      if (Array.isArray(imgs)) productUploadedImages = imgs;
-    } catch(e) {}
-    try {
-      var vids = product.videos;
-      if (typeof vids === 'string') vids = JSON.parse(vids);
-      if (Array.isArray(vids)) productUploadedVideos = vids;
+      var mi = product.mediaItems;
+      if (typeof mi === 'string') mi = JSON.parse(mi);
+      if (Array.isArray(mi)) productMediaItems = mi.map(function(m) { return { title: m.title || '', type: m.type || 'image', url: m.url || '', thumb: m.thumb || m.cover || '' }; });
     } catch(e) {}
   }
-  renderMediaPreviews();
+  renderProductMediaItems();
   document.getElementById('productModal').classList.add('show');
 }
 
@@ -770,104 +771,108 @@ function editProduct(id) {
   if (p) openProductModal(p);
 }
 
-function renderMediaPreviews() {
-  var container = document.getElementById('mediaPreviewList');
-  var html = '';
-  productUploadedImages.forEach(function(url, idx) {
-    var isCover = url === document.getElementById('pCoverImage').value;
-    html += '<div class="media-preview-item">' +
-      '<img src="' + esc(url) + '" alt="img">' +
-      '<button class="remove-btn" onclick="removeMedia(\'image\',' + idx + ')" title="删除">×</button>' +
-      (isCover ? '<div class="cover-badge">封面</div>' : '<div class="cover-badge" style="cursor:pointer;opacity:.7" onclick="setAsCover(' + idx + ')">设为封面</div>') +
+function isImageFile(url) { return url && /\.(jpg|jpeg|png|gif|webp|svg|bmp)/i.test(url); }
+function detectProductMediaType(filename) {
+  var ext = (filename || '').split('.').pop();
+  if (ext) ext = ext.toLowerCase();
+  if (['mp4','webm','ogg','mov','avi','mkv','flv'].indexOf(ext) >= 0) return 'video';
+  return 'image';
+}
+
+function showProductUploadLoading(text) {
+  var o = document.getElementById('productUploadOverlay');
+  document.getElementById('productUploadOverlayText').textContent = text || '上传中...';
+  o.style.display = 'flex';
+}
+function hideProductUploadLoading() { document.getElementById('productUploadOverlay').style.display = 'none'; }
+
+function renderProductMediaItems() {
+  var c = document.getElementById('productMediaItemsList');
+  if (!c) return;
+  c.innerHTML = productMediaItems.map(function(m, i) {
+    var isVid = m.type === 'video';
+    var typeLabel = isVid ? '视频' : '图片';
+    var typeBg = isVid ? '#EDE9FE' : '#DBEAFE';
+    var hasThumb = isImageFile(m.thumb);
+    var thumbPreview = hasThumb ? '<img src="' + esc(m.thumb) + '" style="width:48px;height:48px;object-fit:cover;border-radius:6px;border:1px solid #ddd" />' : '';
+    var thumbWarn = isVid && !hasThumb ? '<div style="color:#DC2626;font-size:11px;margin-top:4px;font-weight:500">视频必须上传封面图</div>' : '';
+    var thumbBorder = isVid && !hasThumb ? 'border:2px solid #FCA5A5' : 'border:1px solid #e5e5e5';
+    return '<div style="' + thumbBorder + ';border-radius:8px;padding:12px;margin-bottom:10px;position:relative;' + (isVid && !hasThumb ? 'background:#FFF5F5' : '') + '">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">' +
+        '<span style="font-size:12px;padding:2px 8px;border-radius:4px;background:' + typeBg + ';font-weight:500">' + (isVid ? '视频' : '图片') + '</span>' +
+        '<span style="cursor:pointer;color:#999;font-size:18px" onclick="removeProductMediaItem(' + i + ')">&times;</span>' +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
+        '<div class="form-group" style="margin-bottom:8px"><label style="font-size:12px">标题</label><input class="form-input" value="' + esc(m.title || '') + '" onchange="productMediaItems[' + i + '].title=this.value" placeholder="可选" /></div>' +
+        '<div class="form-group" style="margin-bottom:8px"><label style="font-size:12px">类型</label><select class="form-input" onchange="productMediaItems[' + i + '].type=this.value;renderProductMediaItems()"><option value="video"' + (isVid ? ' selected' : '') + '>视频</option><option value="image"' + (!isVid ? ' selected' : '') + '>图片</option></select></div>' +
+      '</div>' +
+      '<div class="form-group" style="margin-bottom:8px"><label style="font-size:12px">资源文件 (上传后自动识别类型)</label>' +
+        '<div style="display:flex;gap:6px;margin-top:4px"><input class="form-input" value="' + esc(m.url || '') + '" onchange="productMediaItems[' + i + '].url=this.value" placeholder="上传视频或图片" style="flex:1" />' +
+        '<label class="btn btn-sm" style="background:#059669;color:#fff;border:none;cursor:pointer;padding:6px 12px;border-radius:6px;font-size:12px;white-space:nowrap">上传文件<input type="file" accept="image/*,video/*" style="display:none" onchange="uploadProductMediaUrl(this,' + i + ')" /></label></div>' +
+      '</div>' +
+      '<div class="form-group" style="margin-bottom:0;' + (isVid ? 'padding:8px;background:#FEFCE8;border-radius:6px' : '') + '"><label style="font-size:12px;font-weight:' + (isVid ? '600' : '400') + '">' + (isVid ? '视频封面图（必填）' : '缩略图（可选）') + '</label>' +
+        '<div style="display:flex;gap:6px;align-items:center;margin-top:4px">' + thumbPreview + '<input class="form-input" value="' + esc(m.thumb || '') + '" onchange="productMediaItems[' + i + '].thumb=this.value" style="flex:1" placeholder="' + (isVid ? '请上传视频封面图片' : '可选') + '" />' +
+        '<label class="btn btn-sm" style="background:' + (isVid ? '#DC2626' : 'var(--primary)') + ';color:#fff;border:none;cursor:pointer;padding:6px 12px;border-radius:6px;font-size:12px;white-space:nowrap">' + (isVid ? '上传封面' : '上传') + '<input type="file" accept="image/*" style="display:none" onchange="uploadProductMediaThumb(this,' + i + ')" /></label></div>' +
+        thumbWarn +
+      '</div>' +
     '</div>';
-  });
-  productUploadedVideos.forEach(function(v, idx) {
-    var videoUrl = (typeof v === 'string') ? v : v.url;
-    html += '<div class="media-preview-item">' +
-      '<video src="' + esc(videoUrl) + '" muted></video>' +
-      '<button class="remove-btn" onclick="removeMedia(\'video\',' + idx + ')" title="删除">×</button>' +
-      '<div class="video-badge">视频</div>' +
-    '</div>';
-  });
-  container.innerHTML = html;
+  }).join('');
 }
 
-function removeMedia(type, idx) {
-  if (type === 'image') {
-    productUploadedImages.splice(idx, 1);
-  } else {
-    productUploadedVideos.splice(idx, 1);
-  }
-  renderMediaPreviews();
+function addProductMediaItem() { productMediaItems.push({ title: '', type: 'image', url: '', thumb: '' }); renderProductMediaItems(); }
+function removeProductMediaItem(i) { productMediaItems.splice(i, 1); renderProductMediaItems(); }
+
+async function uploadProductMediaUrl(input, idx) {
+  if (!input.files || !input.files[0]) return;
+  var file = input.files[0];
+  if (file.size > 100 * 1024 * 1024) { alert('文件不能超过100MB'); return; }
+  showProductUploadLoading('正在上传 ' + (file.name || '文件'));
+  try {
+    var fd = new FormData(); fd.append('file', file);
+    var data = await apiUpload('/api/products/upload', fd);
+    if (data.code === 0 && data.data && data.data.url) {
+      productMediaItems[idx].url = data.data.url;
+      productMediaItems[idx].type = detectProductMediaType(file.name);
+      renderProductMediaItems();
+    } else { alert(data.message || '上传失败'); }
+  } catch (e) { alert('上传失败: ' + (e.message || e)); }
+  hideProductUploadLoading();
+  input.value = '';
 }
 
-function setAsCover(idx) {
-  if (productUploadedImages[idx]) {
-    document.getElementById('pCoverImage').value = productUploadedImages[idx];
-    renderMediaPreviews();
-  }
+async function uploadProductMediaThumb(input, idx) {
+  if (!input.files || !input.files[0]) return;
+  showProductUploadLoading('正在上传封面');
+  try {
+    var fd = new FormData(); fd.append('file', input.files[0]);
+    var data = await apiUpload('/api/products/upload', fd);
+    if (data.code === 0 && data.data && data.data.url) {
+      productMediaItems[idx].thumb = data.data.url;
+      renderProductMediaItems();
+    } else { alert(data.message || '上传失败'); }
+  } catch (e) { alert('上传失败'); }
+  hideProductUploadLoading();
+  input.value = '';
 }
 
-function showUploadToast(msg, isError) {
-  var el = document.createElement('div');
-  el.className = 'upload-toast' + (isError ? ' upload-toast-error' : '');
-  el.textContent = msg;
-  el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:8px;background:var(--card);box-shadow:0 4px 12px rgba(0,0,0,.15);z-index:9999;font-size:14px;color:var(--text);border:1px solid var(--border);max-width:90%;';
-  if (isError) el.style.background = '#fef2f2'; el.style.color = '#b91c1c';
-  document.body.appendChild(el);
-  setTimeout(function() { el.remove(); }, 3000);
-}
-
-async function handleMediaUpload(files) {
-  if (!files || !files.length) return;
-  var zone = document.getElementById('mediaUploadZone');
-  var loadingEl = document.getElementById('mediaUploadLoading');
-  var statusEl = document.getElementById('mediaUploadStatus');
-  var btn = document.getElementById('mediaUploadBtn');
-  var total = files.length;
-  var ok = 0;
-  var fail = 0;
-  zone.classList.add('uploading');
-  loadingEl.style.display = 'flex';
-  btn.disabled = true;
-  for (var i = 0; i < files.length; i++) {
-    var file = files[i];
-    statusEl.textContent = '上传中 ' + (i + 1) + '/' + total + '：' + (file.name || '文件');
-    var formData = new FormData();
-    formData.append('file', file);
-    try {
-      var data = await apiUpload('/api/products/upload', formData);
-      if (data.code === 0 && data.data) {
-        var url = data.data.url || data.data;
-        if (file.type.startsWith('video/')) {
-          productUploadedVideos.push({ url: url, cover: '' });
-        } else {
-          productUploadedImages.push(url);
-          if (!document.getElementById('pCoverImage').value) {
-            document.getElementById('pCoverImage').value = url;
-          }
-        }
-        ok++;
-      } else {
-        fail++;
-      }
-    } catch(e) {
-      fail++;
-    }
-  }
-  zone.classList.remove('uploading');
-  loadingEl.style.display = 'none';
-  btn.disabled = false;
-  statusEl.textContent = '上传中...';
-  renderMediaPreviews();
-  document.getElementById('mediaFileInput').value = '';
-  if (fail === 0) {
-    showUploadToast('上传完成，共 ' + ok + ' 个文件');
-  } else if (ok === 0) {
-    showUploadToast('上传失败，请检查网络或文件大小', true);
-  } else {
-    showUploadToast('上传完成：成功 ' + ok + ' 个，失败 ' + fail + ' 个', true);
-  }
+async function uploadProductCover(input) {
+  if (!input.files || !input.files[0]) return;
+  var file = input.files[0];
+  if (!file.type.startsWith('image/')) { alert('封面仅支持图片格式'); input.value = ''; return; }
+  if (file.size > 20 * 1024 * 1024) { alert('图片不能超过20MB'); input.value = ''; return; }
+  showProductUploadLoading('正在上传封面图');
+  try {
+    var fd = new FormData(); fd.append('file', file);
+    var data = await apiUpload('/api/products/upload', fd);
+    if (data.code === 0 && data.data && data.data.url) {
+      document.getElementById('pCoverImage').value = data.data.url;
+      var preview = document.getElementById('pCoverPreview');
+      preview.src = data.data.url;
+      preview.style.display = 'block';
+    } else { alert(data.message || '上传失败'); }
+  } catch (e) { alert('上传失败: ' + (e.message || e)); }
+  hideProductUploadLoading();
+  input.value = '';
 }
 
 async function submitProduct() {
@@ -883,6 +888,13 @@ async function submitProduct() {
     }
   }
 
+  var coverVal = document.getElementById('pCoverImage').value.trim();
+  if (!coverVal) { alert('请上传封面图'); return; }
+  var mediaItems = productMediaItems.map(function(m) { return { type: m.type, title: m.title || '', url: m.url, thumb: m.thumb || '' }; });
+  var videosNoThumb = mediaItems.filter(function(m) { return m.type === 'video' && !isImageFile(m.thumb); });
+  if (videosNoThumb.length) {
+    if (!confirm('有 ' + videosNoThumb.length + ' 个视频未上传封面图，前端将显示占位。确定保存吗？')) return;
+  }
   var body = {
     name: document.getElementById('pName').value.trim(),
     description: document.getElementById('pDesc').value.trim(),
@@ -890,13 +902,10 @@ async function submitProduct() {
     originalPrice: parseFloat(document.getElementById('pOriginalPrice').value) || undefined,
     stock: parseInt(document.getElementById('pStock').value) || 0,
     categoryId: categoryId,
-    coverImage: document.getElementById('pCoverImage').value.trim(),
-    images: productUploadedImages,
-    videos: productUploadedVideos,
-    mediaItems: [].concat(
-      productUploadedImages.map(function(url) { return { type: 'image', url: url }; }),
-      productUploadedVideos.map(function(v) { return { type: 'video', url: (typeof v === 'string') ? v : v.url, cover: (v && v.cover) || '' }; })
-    ),
+    coverImage: coverVal,
+    images: mediaItems.filter(function(m) { return m.type === 'image'; }).map(function(m) { return m.url; }),
+    videos: mediaItems.filter(function(m) { return m.type === 'video'; }).map(function(m) { return { url: m.url, cover: m.thumb || '' }; }),
+    mediaItems: mediaItems,
     status: document.getElementById('pStatus').value
   };
   if (!body.name) { alert('请填写商品名称'); return; }
@@ -918,6 +927,16 @@ async function deleteProduct(id, name) {
     await api('/api/products/' + id, { method: 'DELETE' });
     loadProducts();
   } catch(e) { alert('删除失败'); }
+}
+
+async function toggleProductStatus(id, currentStatus) {
+  var newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+  var label = newStatus === 'active' ? '启用' : '禁用';
+  if (!confirm('确认' + label + '该商品？')) return;
+  try {
+    await api('/api/products/' + id, { method: 'PUT', body: JSON.stringify({ status: newStatus }) });
+    loadProducts();
+  } catch(e) { alert('操作失败'); }
 }
 
 /* ── Product History ── */

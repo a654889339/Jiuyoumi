@@ -4,16 +4,22 @@
     <van-loading v-if="loading" class="page-loading" size="36" vertical>加载中...</van-loading>
     <template v-else-if="product.id">
       <div class="product-media">
-        <van-swipe :autoplay="3000" indicator-color="#667eea" @change="onSwipeChange">
+        <van-swipe
+          :autoplay="3000"
+          :loop="mediaList.length > 1"
+          indicator-color="#667eea"
+          touchable
+          @change="onSwipeChange"
+        >
           <van-swipe-item v-for="(m, i) in mediaList" :key="i">
-            <div v-if="m.type === 'video'" class="media-item" @click="playVideo(m.url)">
+            <div v-if="m.type === 'video'" class="media-item" @click="m.url && playVideo(m.url)">
               <img :src="m.cover || m.thumb || ''" class="swipe-img" />
               <div class="play-overlay"><van-icon name="play-circle" size="48" color="#fff" /></div>
             </div>
             <img v-else :src="m.url" class="swipe-img" @click="previewImage(i)" />
           </van-swipe-item>
         </van-swipe>
-        <div class="swipe-indicator">{{ currentIndex + 1 }} / {{ mediaList.length }}</div>
+        <div v-if="mediaList.length > 0" class="swipe-indicator">{{ currentIndex + 1 }} / {{ mediaList.length }}</div>
       </div>
       <div class="product-main">
         <div class="price-row">
@@ -53,7 +59,7 @@
       <van-popup v-model:show="showVideo" position="center" :style="{ width: '100%', height: '100%', background: '#000' }" @close="videoUrl = ''">
         <div class="video-wrap">
           <van-icon name="cross" class="video-close" size="28" color="#fff" @click="showVideo = false" />
-          <video v-if="videoUrl" :src="videoUrl" controls autoplay class="video-player"></video>
+          <video v-if="videoUrl" :src="videoUrl" controls autoplay playsinline class="video-player"></video>
         </div>
       </van-popup>
     </template>
@@ -104,6 +110,7 @@ const mediaList = computed(() => {
 const onSwipeChange = (idx) => { currentIndex.value = idx; };
 
 const playVideo = (url) => {
+  if (!url) return;
   videoUrl.value = url;
   showVideo.value = true;
 };
@@ -158,8 +165,8 @@ onMounted(async () => {
 .page-loading { padding: 80px 0; text-align: center; }
 .product-media { background: #fff; position: relative; }
 .swipe-img { width: 100%; height: 300px; object-fit: cover; }
-.media-item { position: relative; }
-.play-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.3); border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; }
+.media-item { position: relative; cursor: pointer; }
+.play-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.3); border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; pointer-events: none; }
 .swipe-indicator { position: absolute; bottom: 8px; right: 12px; background: rgba(0,0,0,0.5); color: #fff; font-size: 12px; padding: 2px 8px; border-radius: 10px; }
 .product-main { background: #fff; padding: 16px; margin-bottom: 8px; }
 .price-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
