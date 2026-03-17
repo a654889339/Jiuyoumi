@@ -45,7 +45,7 @@
               :disabled="sending || !isLoggedIn"
             />
             <button class="chat-send-btn" @click="sendMessage" :disabled="sending || !inputText.trim() || !isLoggedIn">
-              <van-icon name="guide-o" size="20" :color="inputText.trim() ? '#fff' : 'rgba(255,255,255,0.5)'" />
+              <span class="chat-send-text">发送</span>
             </button>
           </div>
           <div v-if="!isLoggedIn" class="chat-login-hint" @click="goLogin">请先登录后发送消息</div>
@@ -300,9 +300,11 @@ onBeforeUnmount(() => {
 .chat-input { flex: 1; border: 1px solid #e5e5e5; border-radius: 20px; padding: 8px 16px; font-size: 14px; outline: none; }
 .chat-input:focus { border-color: #667eea; }
 .chat-send-btn {
-  width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); border: none;
+  min-width: 56px; height: 40px; padding: 0 14px; border-radius: 20px; background: linear-gradient(135deg, #667eea, #764ba2); border: none;
   display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
 }
+.chat-send-text { font-size: 15px; font-weight: 500; color: #fff; }
 .chat-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.chat-send-btn:disabled .chat-send-text { color: rgba(255,255,255,0.8); }
 .chat-login-hint { text-align: center; font-size: 13px; color: #667eea; margin-top: 8px; cursor: pointer; text-decoration: underline; }
 </style>

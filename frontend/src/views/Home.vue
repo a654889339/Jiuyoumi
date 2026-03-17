@@ -1,9 +1,23 @@
 <template>
   <div class="home">
-    <div class="hero">
-      <div class="hero-overlay">
-        <h1 class="hero-title">九柚米</h1>
-        <p class="hero-subtitle">精选好物，品质生活</p>
+    <div class="hero" :style="heroStyle">
+      <van-swipe v-if="banners.length" class="hero-swipe" :autoplay="4000" indicator-color="#fff">
+        <van-swipe-item v-for="(b, i) in banners" :key="i">
+          <div class="banner-item" :style="{ background: b.color || 'linear-gradient(135deg, #667eea, #764ba2)' }">
+            <img v-if="b.imageUrl" :src="b.imageUrl" class="banner-img" alt="">
+            <div v-else class="banner-text">
+              <h2>{{ b.title }}</h2>
+              <p>{{ b.desc }}</p>
+            </div>
+          </div>
+        </van-swipe-item>
+      </van-swipe>
+      <div v-else class="hero-overlay">
+        <img v-if="headerLogoUrl" :src="headerLogoUrl" class="hero-logo" alt="Logo" />
+        <template v-else>
+          <h1 class="hero-title">九柚米</h1>
+          <p class="hero-subtitle">精选好物，品质生活</p>
+        </template>
       </div>
     </div>
 
@@ -74,6 +88,11 @@ const navItems = ref([
 ]);
 
 const hotProducts = ref([]);
+const banners = ref([]);
+const headerLogoUrl = ref('');
+const homeBgUrl = ref('');
+const heroStyle = ref({});
+
 const recommends = ref([
   { title: '新人礼包', desc: '首单立减', icon: 'gift-o', bg: 'linear-gradient(135deg, #667eea, #764ba2)' },
   { title: '品质保障', desc: '正品保证', icon: 'shield-o', bg: 'linear-gradient(135deg, #10B981, #059669)' },
@@ -95,6 +114,14 @@ onMounted(async () => {
         title: i.title, icon: i.icon || 'apps-o', path: i.path || '/products', color: i.color || '#667eea',
       }));
     }
+    const bannerList = items.filter(i => i.section === 'banner' && i.status === 'active').sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+    banners.value = bannerList;
+    const logo = items.find(i => i.section === 'headerLogo' && i.status === 'active');
+    headerLogoUrl.value = logo?.imageUrl || '';
+    const bg = items.find(i => i.section === 'homeBg' && i.status === 'active');
+    homeBgUrl.value = bg?.imageUrl || '';
+    if (homeBgUrl.value) heroStyle.value = { backgroundImage: `url(${homeBgUrl.value})`, backgroundSize: 'cover', backgroundPosition: 'center' };
+    else heroStyle.value = {};
   } catch { /* empty */ }
 });
 </script>
@@ -112,9 +139,19 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 
+.hero-swipe { width: 100%; height: 100%; }
+.hero-swipe :deep(.van-swipe-item) { height: 220px; }
+.banner-item { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; }
+.banner-img { width: 100%; height: 100%; object-fit: cover; }
+.banner-text { text-align: center; color: #fff; padding: 20px; }
+.banner-text h2 { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+.banner-text p { font-size: 14px; opacity: 0.9; }
+
 .hero-overlay { text-align: center; color: #fff; }
+.hero-logo { max-height: 48px; width: auto; object-fit: contain; filter: brightness(0) invert(1); }
 .hero-title { font-size: 32px; font-weight: 800; letter-spacing: 4px; color: #fff; }
 .hero-subtitle { font-size: 15px; margin-top: 8px; opacity: 0.8; }
 

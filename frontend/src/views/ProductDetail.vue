@@ -30,6 +30,10 @@
         <h2>{{ product.name }}</h2>
         <p class="desc">{{ product.description }}</p>
         <div class="fav-row">
+          <button type="button" class="fav-btn" :class="{ active: product.isFavorited }" @click="toggleFav">
+            <van-icon :name="product.isFavorited ? 'like' : 'like-o'" size="20" :color="product.isFavorited ? '#f5576c' : '#666'" />
+            <span>{{ product.isFavorited ? '已关注' : '关注' }}</span>
+          </button>
           <span class="fav-count">{{ product.favCount || 0 }} 人关注</span>
         </div>
       </div>
@@ -39,13 +43,8 @@
       </div>
       <div class="bottom-bar">
         <div class="bottom-icons">
-          <div class="icon-btn" @click="toggleFav">
-            <van-icon :name="product.isFavorited ? 'like' : 'like-o'" size="22" :color="product.isFavorited ? '#f5576c' : ''" />
-            <span>{{ product.isFavorited ? '已关注' : '关注' }}</span>
-          </div>
-          <div class="icon-btn" @click="$router.push('/cart')">
-            <van-icon name="shopping-cart-o" size="22" />
-            <span>购物车</span>
+          <div class="icon-btn icon-btn-cart" @click="$router.push('/cart')" title="购物车">
+            <van-icon name="shopping-cart-o" size="24" />
           </div>
           <div class="icon-btn" @click="onConsult">
             <van-icon name="chat-o" size="22" />
@@ -53,7 +52,6 @@
           </div>
         </div>
         <van-button type="warning" round size="normal" @click="addToCart">加入购物车</van-button>
-        <van-button type="danger" round size="normal" color="linear-gradient(135deg, #667eea, #764ba2)" @click="buyNow">立即购买</van-button>
       </div>
 
       <van-popup v-model:show="showVideo" position="center" :style="{ width: '100%', height: '100%', background: '#000' }" @close="videoUrl = ''">
@@ -175,7 +173,10 @@ onMounted(async () => {
 .sales { font-size: 12px; color: #bbb; margin-left: auto; }
 .product-main h2 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
 .desc { font-size: 14px; color: var(--jym-text-secondary); line-height: 1.6; }
-.fav-row { margin-top: 8px; font-size: 13px; color: #999; }
+.fav-row { margin-top: 8px; display: flex; align-items: center; gap: 12px; font-size: 13px; }
+.fav-btn { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border: 1px solid #e5e5e5; border-radius: 16px; background: #fff; color: #666; font-size: 12px; cursor: pointer; }
+.fav-btn.active { border-color: #f5576c; color: #f5576c; }
+.fav-count { color: #999; }
 .product-detail-content { background: #fff; padding: 16px; margin-bottom: 8px; }
 .product-detail-content h3 { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
 .product-detail-content p { font-size: 14px; color: var(--jym-text-secondary); line-height: 1.8; }
@@ -184,6 +185,8 @@ onMounted(async () => {
 .bottom-bar .van-button { flex: 1; }
 .bottom-icons { display: flex; gap: 12px; margin-right: 8px; }
 .icon-btn { display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; font-size: 10px; color: #666; }
+.icon-btn-cart { padding: 4px; }
+.icon-btn-cart span { display: none; }
 
 .video-wrap { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; }
 .video-close { position: absolute; top: 16px; right: 16px; z-index: 10; cursor: pointer; }

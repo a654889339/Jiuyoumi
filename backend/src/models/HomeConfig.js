@@ -27,6 +27,10 @@ const HomeConfig = sequelize.define('HomeConfig', {
     type: DataTypes.STRING(500),
     defaultValue: '',
   },
+  imageUrlThumb: {
+    type: DataTypes.STRING(500),
+    defaultValue: '',
+  },
   path: {
     type: DataTypes.STRING(200),
     defaultValue: '',

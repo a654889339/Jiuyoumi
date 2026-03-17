@@ -36,6 +36,13 @@ services:
       COS_SECRET_KEY: ${COS_SECRET_KEY}
       COS_BUCKET: jiuyoumi-1256887166
       COS_REGION: ap-shanghai
+      EMAIL_ENABLED: ${EMAIL_ENABLED:-false}
+      EMAIL_HOST: ${EMAIL_HOST:-smtp.qq.com}
+      EMAIL_PORT: ${EMAIL_PORT:-587}
+      EMAIL_USERNAME: ${EMAIL_USERNAME}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+      EMAIL_FROM: ${EMAIL_FROM}
+      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-九柚米}
 
   jiuyoumi-frontend:
     build: ./frontend

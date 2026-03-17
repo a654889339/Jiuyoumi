@@ -100,6 +100,30 @@
 
 .fav-row {
   margin-top: 16rpx;
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.fav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 8rpx 20rpx;
+  border: 1rpx solid #e5e5e5;
+  border-radius: 32rpx;
+  background: #fff;
+  font-size: 24rpx;
+  color: #666;
+}
+
+.fav-btn.active {
+  border-color: #f5576c;
+  color: #f5576c;
+}
+
+.fav-btn-icon {
+  font-size: 28rpx;
 }
 
 .fav-count {
@@ -146,13 +170,17 @@
   color: #666;
 }
 
+.bar-icon-cart .bar-icon-text {
+  display: none;
+}
+
 .bar-btns {
   flex: 1;
   display: flex;
   gap: 16rpx;
 }
 
-.btn-add-cart, .btn-buy-now {
+.btn-add-cart {
   flex: 1;
   border: none;
   border-radius: 40rpx;
@@ -161,15 +189,7 @@
   padding: 20rpx 0;
   text-align: center;
   line-height: 1.4;
-}
-
-.btn-add-cart {
   background: #667eea;
-  color: #fff;
-}
-
-.btn-buy-now {
-  background: linear-gradient(135deg, #f5576c, #ff6b8a);
   color: #fff;
 }
 

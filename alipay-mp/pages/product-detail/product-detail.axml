@@ -23,6 +23,10 @@
     <text class="detail-name">{{product.name}}</text>
     <text class="detail-desc" a:if="{{product.description}}">{{product.description}}</text>
     <view class="fav-row">
+      <view class="fav-btn {{product.isFavorited ? 'active' : ''}}" onTap="toggleFav">
+        <text class="fav-btn-icon">{{product.isFavorited ? '❤️' : '🤍'}}</text>
+        <text class="fav-btn-text">{{product.isFavorited ? '已关注' : '关注'}}</text>
+      </view>
       <text class="fav-count">{{product.favCount || 0}} 人关注</text>
     </view>
   </view>
@@ -35,13 +39,8 @@
   <view class="bottom-placeholder"></view>
 
   <view class="bottom-bar">
-    <view class="bar-icon" onTap="toggleFav">
-      <text class="bar-icon-emoji">{{product.isFavorited ? '❤️' : '🤍'}}</text>
-      <text class="bar-icon-text">{{product.isFavorited ? '已关注' : '关注'}}</text>
-    </view>
-    <view class="bar-icon" onTap="goCart">
+    <view class="bar-icon bar-icon-cart" onTap="goCart">
       <text class="bar-icon-emoji">🛒</text>
-      <text class="bar-icon-text">购物车</text>
     </view>
     <view class="bar-icon" onTap="goConsult">
       <text class="bar-icon-emoji">💬</text>
@@ -49,7 +48,6 @@
     </view>
     <view class="bar-btns">
       <button class="btn-add-cart" onTap="addToCart">加入购物车</button>
-      <button class="btn-buy-now" onTap="buyNow">立即购买</button>
     </view>
   </view>
 </view>
