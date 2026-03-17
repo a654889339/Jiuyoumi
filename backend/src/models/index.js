@@ -86,6 +86,7 @@ const syncDatabase = async () => {
         { section: 'nav', title: '特惠', icon: 'coupon-o', path: '/products?cat=sale', color: '#fda085', sortOrder: 3 },
         { section: 'nav', title: '订单', icon: 'bill-o', path: '/orders', color: '#a18cd1', sortOrder: 4 },
         { section: 'navOpacity', title: '快捷导航透明度', desc: '1', status: 'active', sortOrder: 0 },
+        { section: 'hotOpacity', title: '热门商品透明度', desc: '1', status: 'active', sortOrder: 0 },
         { section: 'tabbar', title: '首页', icon: 'wap-home-o', path: '/', sortOrder: 1 },
         { section: 'tabbar', title: '商品', icon: 'shopping-cart-o', path: '/products', sortOrder: 2 },
         { section: 'tabbar', title: '订单', icon: 'bill-o', path: '/orders', sortOrder: 3 },

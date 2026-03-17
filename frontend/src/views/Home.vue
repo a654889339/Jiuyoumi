@@ -1,41 +1,43 @@
 <template>
   <div class="home">
-    <div class="hero" :style="heroStyle">
-      <van-swipe v-if="banners.length" class="hero-swipe" :autoplay="4000" indicator-color="#fff">
-        <van-swipe-item v-for="(b, i) in banners" :key="i">
-          <div class="banner-item" :style="{ background: b.color || 'linear-gradient(135deg, #667eea, #764ba2)' }">
-            <img v-if="b.imageUrl" :src="b.imageUrl" class="banner-img" alt="">
-            <div v-else class="banner-text">
-              <h2>{{ b.title }}</h2>
-              <p>{{ b.desc }}</p>
+    <div class="hero-wrapper">
+      <div class="hero" :style="heroStyle">
+        <van-swipe v-if="banners.length" class="hero-swipe" :autoplay="4000" indicator-color="#fff">
+          <van-swipe-item v-for="(b, i) in banners" :key="i">
+            <div class="banner-item" :style="{ background: b.color || 'linear-gradient(135deg, #667eea, #764ba2)' }">
+              <img v-if="b.imageUrl" :src="b.imageUrl" class="banner-img" alt="">
+              <div v-else class="banner-text">
+                <h2>{{ b.title }}</h2>
+                <p>{{ b.desc }}</p>
+              </div>
             </div>
-          </div>
-        </van-swipe-item>
-      </van-swipe>
-      <div v-else class="hero-overlay">
-        <img v-if="headerLogoUrl" :src="headerLogoUrl" class="hero-logo" alt="Logo" />
-        <template v-else>
-          <h1 class="hero-title">九尤米</h1>
-          <p class="hero-subtitle">精选好物，品质生活</p>
-        </template>
+          </van-swipe-item>
+        </van-swipe>
+        <div v-else class="hero-overlay">
+          <img v-if="headerLogoUrl" :src="headerLogoUrl" class="hero-logo" alt="Logo" />
+          <template v-else>
+            <h1 class="hero-title">九尤米</h1>
+            <p class="hero-subtitle">精选好物，品质生活</p>
+          </template>
+        </div>
       </div>
-    </div>
 
-    <div class="section card-section nav-section" :style="navSectionStyle">
-      <div class="section-header">
-        <h3>快捷导航</h3>
-      </div>
-      <div class="nav-grid">
-        <div v-for="item in navItems" :key="item.path" class="nav-item" @click="$router.push(item.path)">
-          <div class="nav-icon" :style="{ background: item.color }">
-            <van-icon :name="item.icon" size="24" color="#fff" />
+      <div class="nav-float" :style="navSectionStyle">
+        <div class="section-header">
+          <h3>快捷导航</h3>
+        </div>
+        <div class="nav-grid">
+          <div v-for="item in navItems" :key="item.path" class="nav-item" @click="$router.push(item.path)">
+            <div class="nav-icon" :style="{ background: item.color }">
+              <van-icon :name="item.icon" size="24" color="#fff" />
+            </div>
+            <span>{{ item.title }}</span>
           </div>
-          <span>{{ item.title }}</span>
         </div>
       </div>
     </div>
 
-    <div class="section card-section">
+    <div class="section card-section hot-section" :style="hotSectionStyle">
       <div class="section-header">
         <h3>热门商品</h3>
         <span class="more" @click="$router.push('/products')">查看全部 ›</span>
@@ -53,21 +55,6 @@
               <span v-if="p.originalPrice" class="original-price">¥{{ p.originalPrice }}</span>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="section card-section">
-      <div class="section-header">
-        <h3>推荐</h3>
-      </div>
-      <div class="recommend-grid">
-        <div v-for="item in recommends" :key="item.title" class="recommend-card" @click="$router.push(item.path || '/products')">
-          <div class="recommend-icon" :style="{ background: item.bg }">
-            <van-icon :name="item.icon" size="28" color="#fff" />
-          </div>
-          <h4>{{ item.title }}</h4>
-          <p>{{ item.desc }}</p>
         </div>
       </div>
     </div>
@@ -94,13 +81,8 @@ const homeBgUrl = ref('');
 const heroStyle = ref({});
 const navOpacity = ref(1);
 const navSectionStyle = ref({});
-
-const recommends = ref([
-  { title: '新人礼包', desc: '首单立减', icon: 'gift-o', bg: 'linear-gradient(135deg, #667eea, #764ba2)' },
-  { title: '品质保障', desc: '正品保证', icon: 'shield-o', bg: 'linear-gradient(135deg, #10B981, #059669)' },
-  { title: '极速发货', desc: '闪电配送', icon: 'logistics', bg: 'linear-gradient(135deg, #f093fb, #f5576c)' },
-  { title: '售后无忧', desc: '7天退换', icon: 'service-o', bg: 'linear-gradient(135deg, #fda085, #f6d365)' },
-]);
+const hotOpacity = ref(1);
+const hotSectionStyle = ref({});
 
 onMounted(async () => {
   try {
@@ -124,10 +106,18 @@ onMounted(async () => {
     homeBgUrl.value = bg?.imageUrl || '';
     if (homeBgUrl.value) heroStyle.value = { backgroundImage: `url(${homeBgUrl.value})`, backgroundSize: 'cover', backgroundPosition: 'center' };
     else heroStyle.value = {};
-    const opacityItem = items.find(i => i.section === 'navOpacity' && i.status === 'active');
-    const opacityVal = opacityItem?.desc != null ? parseFloat(opacityItem.desc) : 1;
-    navOpacity.value = Number.isNaN(opacityVal) || opacityVal <= 0 ? 1 : Math.min(1, opacityVal);
+
+    const parseOpacity = (val) => {
+      const n = parseFloat(val);
+      return Number.isNaN(n) || n <= 0 ? 1 : Math.min(1, n);
+    };
+    const navOpItem = items.find(i => i.section === 'navOpacity' && i.status === 'active');
+    navOpacity.value = navOpItem?.desc != null ? parseOpacity(navOpItem.desc) : 1;
     navSectionStyle.value = { opacity: navOpacity.value };
+
+    const hotOpItem = items.find(i => i.section === 'hotOpacity' && i.status === 'active');
+    hotOpacity.value = hotOpItem?.desc != null ? parseOpacity(hotOpItem.desc) : 1;
+    hotSectionStyle.value = { opacity: hotOpacity.value };
   } catch { /* empty */ }
 });
 </script>
@@ -137,6 +127,10 @@ onMounted(async () => {
   padding-bottom: 100px;
   background: var(--jym-bg);
   min-height: 100vh;
+}
+
+.hero-wrapper {
+  position: relative;
 }
 
 .hero {
@@ -161,6 +155,19 @@ onMounted(async () => {
 .hero-title { font-size: 32px; font-weight: 800; letter-spacing: 4px; color: #fff; }
 .hero-subtitle { font-size: 15px; margin-top: 8px; opacity: 0.8; }
 
+.nav-float {
+  position: absolute;
+  top: 75%;
+  left: 12px;
+  right: 12px;
+  z-index: 10;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 16px 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
 .card-section {
   margin: 12px;
   border-radius: 16px;
@@ -168,6 +175,10 @@ onMounted(async () => {
   padding: 20px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.04);
   animation: fadeInUp 0.4s var(--jym-transition) both;
+}
+
+.hot-section {
+  margin-top: 80px;
 }
 
 .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
@@ -192,13 +203,6 @@ onMounted(async () => {
 .product-price { display: flex; align-items: baseline; gap: 6px; }
 .price { font-size: 16px; font-weight: 700; color: #f5576c; }
 .original-price { font-size: 12px; color: #999; text-decoration: line-through; }
-
-.recommend-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.recommend-card { background: #f5f5f5; border-radius: 12px; padding: 20px 16px; text-align: center; cursor: pointer; transition: transform 0.25s; }
-.recommend-card:active { transform: scale(0.97); }
-.recommend-icon { width: 50px; height: 50px; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; }
-.recommend-card h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
-.recommend-card p { font-size: 13px; color: var(--jym-text-secondary); }
 
 .footer-space { height: 80px; }
 </style>
