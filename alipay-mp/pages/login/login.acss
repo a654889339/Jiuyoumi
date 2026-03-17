@@ -117,3 +117,44 @@
 .alipay-icon {
   font-size: 36rpx;
 }
+
+.tabs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 32rpx;
+  border-bottom: 1rpx solid #eee;
+}
+.tab {
+  padding: 20rpx 40rpx;
+  font-size: 30rpx;
+  color: #999;
+  position: relative;
+}
+.tab-active {
+  color: #667eea;
+  font-weight: 600;
+}
+.code-group {
+  position: relative;
+}
+.code-input {
+  flex: 1;
+  padding-right: 200rpx;
+}
+.btn-send-code {
+  position: absolute;
+  right: 16rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #667eea;
+  color: #fff;
+  font-size: 24rpx;
+  padding: 12rpx 24rpx;
+  border-radius: 32rpx;
+  border: none;
+  line-height: 1.4;
+}
+.btn-send-code[disabled] {
+  background: #ccc;
+  color: #fff;
+}

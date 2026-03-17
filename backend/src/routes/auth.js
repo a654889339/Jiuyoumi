@@ -4,6 +4,8 @@ const { authMiddleware } = require('../middleware/auth');
 
 const router = Router();
 
+router.post('/send-email-code', authController.sendEmailCode);
+router.post('/send-sms-code', authController.sendSmsCode);
 router.post('/register', authController.register);
 router.post('/login', authController.login);
 router.post('/wx-login', authController.wxLogin);

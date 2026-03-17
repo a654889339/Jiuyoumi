@@ -3,25 +3,60 @@ const config = require('../config');
 const { User } = require('../models');
 
 const generateToken = (user) =>
-  jwt.sign({ id: user.id, username: user.username, role: user.role }, config.jwt.secret, {
-    expiresIn: config.jwt.expiresIn,
-  });
+  jwt.sign({ id: user.id, username: user.username, role: user.role }, config.jwt.secret, { expiresIn: config.jwt.expiresIn });
+
+exports.sendEmailCode = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ code: 400, message: '邮箱不能为空' });
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ code: 400, message: '邮箱格式不正确' });
+    const emailService = require('../services/emailService');
+    await emailService.sendVerificationCode(email);
+    res.json({ code: 0, message: '验证码已发送' });
+  } catch (err) {
+    console.error('[Auth] sendEmailCode error:', err.message);
+    res.status(400).json({ code: 400, message: err.message || '发送验证码失败' });
+  }
+};
+
+exports.sendSmsCode = async (req, res) => {
+  try {
+    const { phone } = req.body;
+    if (!phone) return res.status(400).json({ code: 400, message: '手机号不能为空' });
+    if (!/^1\d{10}$/.test(String(phone).replace(/\s/g, ''))) return res.status(400).json({ code: 400, message: '请输入正确的11位手机号' });
+    const smsService = require('../services/smsService');
+    await smsService.sendVerificationCode(phone);
+    res.json({ code: 0, message: '验证码已发送' });
+  } catch (err) {
+    console.error('[Auth] sendSmsCode error:', err.message);
+    res.status(400).json({ code: 400, message: err.message || '发送验证码失败' });
+  }
+};
 
 exports.register = async (req, res) => {
   try {
-    const { username, password, nickname, phone } = req.body;
-    if (!username || !password) {
-      return res.status(400).json({ code: 400, message: '用户名和密码不能为空' });
+    const { username, password, nickname, phone, email, emailCode } = req.body;
+    if (!username || !password) return res.status(400).json({ code: 400, message: '用户名和密码不能为空' });
+    if (String(username).trim().length < 2 || String(username).trim().length > 50) return res.status(400).json({ code: 400, message: '用户名长度需在2-50个字符之间' });
+    if (String(password).length < 6) return res.status(400).json({ code: 400, message: '密码长度不能少于6位' });
+    if (String(username).trim().toLowerCase() === 'admin') return res.status(400).json({ code: 400, message: '该用户名为系统保留' });
+
+    if (email && emailCode) {
+      const emailService = require('../services/emailService');
+      const verify = emailService.verifyCode(email, emailCode);
+      if (!verify.valid) return res.status(400).json({ code: 400, message: verify.message });
+      const existingEmail = await User.findOne({ where: { email } });
+      if (existingEmail) return res.status(400).json({ code: 400, message: '该邮箱已被注册' });
     }
-    if (String(username).trim().length < 2 || String(username).trim().length > 50) {
-      return res.status(400).json({ code: 400, message: '用户名长度需在2-50个字符之间' });
+
+    if (phone && req.body.smsCode) {
+      const smsService = require('../services/smsService');
+      const verify = smsService.verifyCode(phone, req.body.smsCode);
+      if (!verify.valid) return res.status(400).json({ code: 400, message: verify.message });
+      const existingPhone = await User.findOne({ where: { phone: smsService.normalizePhone(phone) } });
+      if (existingPhone) return res.status(400).json({ code: 400, message: '该手机号已被注册' });
     }
-    if (String(password).length < 6) {
-      return res.status(400).json({ code: 400, message: '密码长度不能少于6位' });
-    }
-    if (String(username).trim().toLowerCase() === 'admin') {
-      return res.status(400).json({ code: 400, message: '该用户名为系统保留' });
-    }
+
     const existing = await User.findOne({ where: { username: String(username).trim() } });
     if (existing) return res.status(400).json({ code: 400, message: '用户名已存在' });
 
@@ -29,7 +64,8 @@ exports.register = async (req, res) => {
       username: String(username).trim(),
       password,
       nickname: nickname ? String(nickname).trim() : String(username).trim(),
-      phone: phone || '',
+      phone: phone ? String(phone).trim() : '',
+      email: email || null,
     });
     const token = generateToken(user);
     res.json({ code: 0, data: { token, user } });
@@ -41,17 +77,25 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
-    const { username, password, phone, code } = req.body;
-    if (!username || !password) {
-      return res.status(400).json({ code: 400, message: '用户名和密码不能为空' });
+    const { username, password, phone, smsCode } = req.body;
+
+    if (phone && smsCode) {
+      const smsService = require('../services/smsService');
+      const normalized = smsService.normalizePhone(phone);
+      if (!/^1\d{10}$/.test(normalized)) return res.status(400).json({ code: 400, message: '手机号格式不正确' });
+      const verify = smsService.verifyCode(phone, smsCode);
+      if (!verify.valid) return res.status(400).json({ code: 400, message: verify.message });
+      let user = await User.findOne({ where: { phone: normalized } });
+      if (!user) return res.status(400).json({ code: 400, message: '该手机号未注册，请先注册' });
+      if (user.status !== 'active') return res.status(403).json({ code: 403, message: '账号已被禁用' });
+      const token = generateToken(user);
+      return res.json({ code: 0, data: { token, user } });
     }
+
+    if (!username || !password) return res.status(400).json({ code: 400, message: '用户名和密码不能为空' });
     const user = await User.findOne({ where: { username: String(username).trim() } });
-    if (!user || !(await user.comparePassword(password))) {
-      return res.status(401).json({ code: 401, message: '用户名或密码错误' });
-    }
-    if (user.status !== 'active') {
-      return res.status(403).json({ code: 403, message: '账号已被禁用' });
-    }
+    if (!user || !(await user.comparePassword(password))) return res.status(401).json({ code: 401, message: '用户名或密码错误' });
+    if (user.status !== 'active') return res.status(403).json({ code: 403, message: '账号已被禁用' });
     const token = generateToken(user);
     res.json({ code: 0, data: { token, user } });
   } catch (err) {

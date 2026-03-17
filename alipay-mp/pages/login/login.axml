@@ -4,7 +4,12 @@
     <text class="brand-sub">品质生活 · 精选好物</text>
   </view>
 
-  <view class="login-form">
+  <view class="tabs">
+    <text class="tab {{activeTab === 0 ? 'tab-active' : ''}}" onTap="switchTab" data-tab="0">账号登录</text>
+    <text class="tab {{activeTab === 1 ? 'tab-active' : ''}}" onTap="switchTab" data-tab="1">手机号登录</text>
+  </view>
+
+  <view a:if="{{activeTab === 0}}" class="login-form">
     <view class="input-group">
       <text class="input-icon">👤</text>
       <input class="form-input" placeholder="请输入用户名" value="{{username}}" onInput="onUsernameInput" />
@@ -13,15 +18,31 @@
       <text class="input-icon">🔒</text>
       <input class="form-input" placeholder="请输入密码" password="{{true}}" value="{{password}}" onInput="onPasswordInput" />
     </view>
-
     <button class="btn-login" onTap="login" disabled="{{logging}}">
       {{logging ? '登录中...' : '登录'}}
     </button>
+  </view>
 
-    <view class="register-link" onTap="goRegister">
-      <text>还没有账号？</text>
-      <text class="link-text">立即注册</text>
+  <view a:if="{{activeTab === 1}}" class="login-form">
+    <view class="input-group">
+      <text class="input-icon">📱</text>
+      <input class="form-input" placeholder="请输入手机号" type="number" maxlength="11" value="{{phone}}" onInput="onPhoneInput" />
     </view>
+    <view class="input-group code-group">
+      <text class="input-icon">🔐</text>
+      <input class="form-input code-input" placeholder="请输入验证码" type="number" maxlength="6" value="{{smsCode}}" onInput="onSmsCodeInput" />
+      <button class="btn-send-code" onTap="sendSmsCode" disabled="{{smsCooldown > 0 || smsSending}}">
+        {{smsCooldown > 0 ? smsCooldown + 's' : '获取验证码'}}
+      </button>
+    </view>
+    <button class="btn-login" onTap="phoneLogin" disabled="{{logging}}">
+      {{logging ? '登录中...' : '登录'}}
+    </button>
+  </view>
+
+  <view class="register-link" onTap="goRegister">
+    <text>还没有账号？</text>
+    <text class="link-text">立即注册</text>
   </view>
 
   <view class="divider">

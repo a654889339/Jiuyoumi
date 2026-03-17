@@ -1,0 +1,52 @@
+<view class="page-register">
+  <view class="register-header">
+    <text class="brand-name">九柚米</text>
+    <text class="brand-sub">创建账号</text>
+  </view>
+
+  <view class="register-form">
+    <view class="input-group">
+      <text class="input-icon">👤</text>
+      <input class="form-input" placeholder="请输入用户名（2-50字符）" maxlength="50" value="{{username}}" onInput="onInput" data-field="username" />
+    </view>
+    <view class="input-group">
+      <text class="input-icon">🔒</text>
+      <input class="form-input" placeholder="请输入密码（至少6位）" password="{{true}}" value="{{password}}" onInput="onInput" data-field="password" />
+    </view>
+    <view class="input-group">
+      <text class="input-icon">😊</text>
+      <input class="form-input" placeholder="昵称（选填）" maxlength="50" value="{{nickname}}" onInput="onInput" data-field="nickname" />
+    </view>
+    <view class="input-group">
+      <text class="input-icon">📧</text>
+      <input class="form-input email-input" placeholder="请输入邮箱" value="{{email}}" onInput="onInput" data-field="email" />
+      <button class="btn-send-code" onTap="sendEmailCode" disabled="{{emailCooldown > 0 || emailSending}}">
+        {{emailCooldown > 0 ? emailCooldown + 's' : '获取验证码'}}
+      </button>
+    </view>
+    <view class="input-group">
+      <text class="input-icon">🔐</text>
+      <input class="form-input" placeholder="请输入邮箱验证码" type="number" maxlength="6" value="{{emailCode}}" onInput="onInput" data-field="emailCode" />
+    </view>
+    <view class="input-group">
+      <text class="input-icon">📱</text>
+      <input class="form-input {{phone.length === 11 ? 'phone-input' : ''}}" placeholder="手机号（选填）" type="number" maxlength="11" value="{{phone}}" onInput="onInput" data-field="phone" />
+      <button a:if="{{phone.length === 11}}" class="btn-send-code" onTap="sendSmsCode" disabled="{{smsCooldown > 0 || smsSending}}">
+        {{smsCooldown > 0 ? smsCooldown + 's' : '获取验证码'}}
+      </button>
+    </view>
+    <view class="input-group" a:if="{{phone.length === 11}}">
+      <text class="input-icon">🔐</text>
+      <input class="form-input" placeholder="请输入短信验证码" type="number" maxlength="6" value="{{smsCode}}" onInput="onInput" data-field="smsCode" />
+    </view>
+
+    <button class="btn-register" onTap="register" disabled="{{registering}}">
+      {{registering ? '注册中...' : '注册'}}
+    </button>
+
+    <view class="login-link" onTap="goLogin">
+      <text>已有账号？</text>
+      <text class="link-text">去登录</text>
+    </view>
+  </view>
+</view>

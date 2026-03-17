@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>九柚米 - 管理后台</title>
+<style>
+:root {
+  --primary: #667eea;
+  --primary-dark: #5567d5;
+  --primary-light: #8fa0f0;
+  --bg: #f0f2f5;
+  --card: #fff;
+  --text: #1f2937;
+  --text-secondary: #6b7280;
+  --border: #e5e7eb;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --radius: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,.08);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+button { cursor: pointer; font-family: inherit; }
+input, textarea, select { font-family: inherit; }
+
+/* Login */
+.login-wrap { display:flex; align-items:center; justify-content:center; min-height:100vh; }
+.login-box { background: var(--card); padding: 40px; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,.1); width: 380px; text-align:center; }
+.login-box h1 { font-size: 24px; color: var(--primary); margin-bottom: 8px; }
+.login-box p { color: var(--text-secondary); margin-bottom: 28px; font-size: 14px; }
+.login-box input { width:100%; padding: 10px 14px; border:1px solid var(--border); border-radius: var(--radius); font-size: 14px; margin-bottom: 14px; outline: none; transition: border .2s; }
+.login-box input:focus { border-color: var(--primary); }
+.login-box .btn-login { width:100%; padding: 11px; background: var(--primary); color:#fff; border:none; border-radius: var(--radius); font-size: 15px; font-weight: 600; transition: background .2s; }
+.login-box .btn-login:hover { background: var(--primary-dark); }
+.login-box .error { color: var(--danger); font-size: 13px; margin-bottom: 12px; min-height: 20px; }
+
+/* Layout */
+.app { display: none; height: 100vh; }
+.sidebar { width: 220px; background: linear-gradient(180deg, #667eea 0%, #5567d5 100%); color: #fff; display: flex; flex-direction: column; flex-shrink: 0; }
+.sidebar .logo { padding: 24px 20px 20px; font-size: 18px; font-weight: 700; letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,.15); }
+.sidebar nav { flex:1; padding: 12px 0; }
+.sidebar nav a { display: flex; align-items: center; gap: 10px; padding: 12px 24px; color: rgba(255,255,255,.75); text-decoration: none; font-size: 14px; transition: all .15s; }
+.sidebar nav a:hover, .sidebar nav a.active { background: rgba(255,255,255,.12); color: #fff; }
+.sidebar nav a.active { border-right: 3px solid #fff; }
+.sidebar .user-info { padding: 16px 20px; border-top: 1px solid rgba(255,255,255,.15); font-size: 13px; opacity: .8; }
+.sidebar .user-info button { background: rgba(255,255,255,.15); border: none; color: #fff; padding: 6px 14px; border-radius: var(--radius); font-size: 12px; margin-top: 8px; }
+.sidebar .user-info button:hover { background: rgba(255,255,255,.25); }
+
+.main { flex:1; display: flex; flex-direction: column; overflow: hidden; }
+.topbar { background: var(--card); padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.topbar h2 { font-size: 18px; font-weight: 600; }
+.content { flex:1; padding: 24px; overflow-y: auto; }
+
+.page { display: none; }
+.page.active { display: block; }
+
+/* Table */
+.card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); font-size: 14px; }
+th { background: #f9fafb; font-weight: 600; color: var(--text-secondary); font-size: 13px; white-space: nowrap; }
+td { color: var(--text); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #f9fafb; }
+
+.badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+.badge-success { background: #d1fae5; color: #065f46; }
+.badge-warning { background: #fef3c7; color: #92400e; }
+.badge-danger { background: #fee2e2; color: #991b1b; }
+.badge-info { background: #dbeafe; color: #1e40af; }
+.badge-gray { background: #f3f4f6; color: #4b5563; }
+
+.btn { padding: 7px 16px; border: none; border-radius: var(--radius); font-size: 13px; font-weight: 500; transition: all .15s; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger:hover { background: #dc2626; }
+.btn-success { background: var(--success); color: #fff; }
+.btn-success:hover { background: #059669; }
+
+.toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.toolbar input, .toolbar select { padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px; outline: none; }
+.toolbar input:focus { border-color: var(--primary); }
+
+/* Messages */
+.msg-layout { display: flex; gap: 16px; height: calc(100vh - 160px); }
+.conv-list { width: 300px; flex-shrink: 0; overflow-y: auto; }
+.conv-list .card { height: 100%; }
+.conv-item { padding: 14px 16px; cursor: pointer; border-bottom: 1px solid var(--border); transition: background .1s; }
+.conv-item:hover { background: #f9fafb; }
+.conv-item.active { background: #eff2ff; border-left: 3px solid var(--primary); }
+.conv-item .name { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+.conv-item .preview { font-size: 13px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.conv-item .time { font-size: 12px; color: var(--text-secondary); float: right; }
+.conv-item .unread { background: var(--danger); color: #fff; border-radius: 10px; padding: 1px 7px; font-size: 11px; margin-left: 6px; }
+
+.chat-panel { flex: 1; display: flex; flex-direction: column; }
+.chat-panel .card { flex: 1; display: flex; flex-direction: column; }
+.chat-header { padding: 14px 16px; border-bottom: 1px solid var(--border); font-weight: 600; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.msg-bubble { max-width: 70%; padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.5; word-break: break-word; }
+.msg-bubble.user { background: #f3f4f6; color: var(--text); align-self: flex-start; border-bottom-left-radius: 4px; }
+.msg-bubble.admin { background: var(--primary); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+.msg-bubble .msg-time { font-size: 11px; opacity: .6; margin-top: 4px; }
+.chat-input { display: flex; gap: 10px; padding: 12px 16px; border-top: 1px solid var(--border); }
+.chat-input textarea { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius); resize: none; font-size: 14px; outline: none; height: 44px; }
+.chat-input textarea:focus { border-color: var(--primary); }
+.chat-empty { display: flex; align-items: center; justify-content: center; flex: 1; color: var(--text-secondary); font-size: 14px; }
+
+/* Modal */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 1000; align-items: center; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: var(--card); border-radius: 12px; padding: 28px; width: 520px; max-height: 85vh; overflow-y: auto; box-shadow: 0 8px 40px rgba(0,0,0,.15); }
+.modal h3 { font-size: 18px; margin-bottom: 20px; }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary); }
+.form-group input, .form-group textarea, .form-group select { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 14px; outline: none; }
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--primary); }
+.form-group textarea { resize: vertical; min-height: 80px; }
+.form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+.loading { text-align: center; padding: 40px; color: var(--text-secondary); }
+.empty { text-align: center; padding: 60px 20px; color: var(--text-secondary); }
+
+.flex { display: flex; } .gap-2 { gap: 8px; }
+.text-right { text-align: right; }
+.mt-2 { margin-top: 8px; }
+.mb-2 { margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<!-- Login Screen -->
+<div id="loginScreen" class="login-wrap">
+  <div class="login-box">
+    <h1>🍊 九柚米</h1>
+    <p>管理后台登录</p>
+    <div id="loginError" class="error"></div>
+    <input type="text" id="loginUsername" placeholder="管理员账号" autocomplete="username">
+    <input type="password" id="loginPassword" placeholder="密码" autocomplete="current-password">
+    <button class="btn-login" onclick="doLogin()">登 录</button>
+  </div>
+</div>
+
+<!-- App Shell -->
+<div id="app" class="app flex">
+  <aside class="sidebar">
+    <div class="logo">🍊 九柚米后台</div>
+    <nav>
+      <a href="#" data-page="messages" class="active" onclick="switchPage('messages')">💬 留言板/客服</a>
+      <a href="#" data-page="orders" onclick="switchPage('orders')">📦 订单管理</a>
+      <a href="#" data-page="products" onclick="switchPage('products')">🛍️ 商品管理</a>
+    </nav>
+    <div class="user-info">
+      <div id="adminName">管理员</div>
+      <button onclick="doLogout()">退出登录</button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <h2 id="pageTitle">留言板/客服</h2>
+      <div id="topbarActions"></div>
+    </div>
+    <div class="content">
+
+      <!-- Messages Page -->
+      <div id="page-messages" class="page active">
+        <div class="msg-layout">
+          <div class="conv-list">
+            <div class="card" id="convListCard">
+              <div class="loading">加载中...</div>
+            </div>
+          </div>
+          <div class="chat-panel">
+            <div class="card" id="chatCard">
+              <div class="chat-empty">选择一个对话开始回复</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Orders Page -->
+      <div id="page-orders" class="page">
+        <div class="toolbar">
+          <input type="text" id="orderSearch" placeholder="搜索订单号/用户..." oninput="filterOrders()">
+          <select id="orderStatusFilter" onchange="filterOrders()">
+            <option value="">全部状态</option>
+            <option value="pending">待付款</option>
+            <option value="paid">已付款</option>
+            <option value="shipped">已发货</option>
+            <option value="delivered">已送达</option>
+            <option value="completed">已完成</option>
+            <option value="cancelled">已取消</option>
+          </select>
+          <button class="btn btn-outline btn-sm" onclick="loadOrders()">刷新</button>
+        </div>
+        <div class="card">
+          <table>
+            <thead><tr><th>订单号</th><th>用户</th><th>金额</th><th>状态</th><th>物流</th><th>时间</th><th>操作</th></tr></thead>
+            <tbody id="orderTableBody"><tr><td colspan="7" class="loading">加载中...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Products Page -->
+      <div id="page-products" class="page">
+        <div class="toolbar">
+          <input type="text" id="productSearch" placeholder="搜索商品名称..." oninput="filterProducts()">
+          <div style="flex:1"></div>
+          <button class="btn btn-primary" onclick="openProductModal()">+ 添加商品</button>
+        </div>
+        <div class="card">
+          <table>
+            <thead><tr><th>ID</th><th>商品名</th><th>价格</th><th>库存</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead>
+            <tbody id="productTableBody"><tr><td colspan="7" class="loading">加载中...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Tracking Modal -->
+<div class="modal-overlay" id="trackingModal">
+  <div class="modal" style="width:420px">
+    <h3>更新物流信息</h3>
+    <input type="hidden" id="trackingOrderId">
+    <div class="form-group">
+      <label>物流公司</label>
+      <select id="trackingCompany">
+        <option value="顺丰速运">顺丰速运</option>
+        <option value="中通快递">中通快递</option>
+        <option value="圆通速递">圆通速递</option>
+        <option value="韵达快递">韵达快递</option>
+        <option value="申通快递">申通快递</option>
+        <option value="极兔速递">极兔速递</option>
+        <option value="邮政EMS">邮政EMS</option>
+        <option value="京东物流">京东物流</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>物流单号</label>
+      <input type="text" id="trackingNo" placeholder="输入物流单号">
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-outline" onclick="closeModal('trackingModal')">取消</button>
+      <button class="btn btn-primary" onclick="submitTracking()">确认发货</button>
+    </div>
+  </div>
+</div>
+
+<!-- Product Modal -->
+<div class="modal-overlay" id="productModal">
+  <div class="modal">
+    <h3 id="productModalTitle">添加商品</h3>
+    <input type="hidden" id="productEditId">
+    <div class="form-group">
+      <label>商品名称</label>
+      <input type="text" id="pName" placeholder="商品名称">
+    </div>
+    <div class="form-group">
+      <label>商品描述</label>
+      <textarea id="pDesc" placeholder="简短描述"></textarea>
+    </div>
+    <div class="form-group">
+      <label>价格 (元)</label>
+      <input type="number" id="pPrice" step="0.01" placeholder="0.00">
+    </div>
+    <div class="form-group">
+      <label>原价 (元, 可选)</label>
+      <input type="number" id="pOriginalPrice" step="0.01" placeholder="0.00">
+    </div>
+    <div class="form-group">
+      <label>库存</label>
+      <input type="number" id="pStock" placeholder="0">
+    </div>
+    <div class="form-group">
+      <label>分类</label>
+      <input type="text" id="pCategory" placeholder="例如: 水果, 零食">
+    </div>
+    <div class="form-group">
+      <label>主图 URL</label>
+      <input type="text" id="pImage" placeholder="https://...">
+    </div>
+    <div class="form-group">
+      <label>状态</label>
+      <select id="pStatus">
+        <option value="active">上架</option>
+        <option value="inactive">下架</option>
+      </select>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-outline" onclick="closeModal('productModal')">取消</button>
+      <button class="btn btn-primary" onclick="submitProduct()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '';
+const TOKEN_KEY = 'jym_admin_token';
+
+function getToken() { return localStorage.getItem(TOKEN_KEY); }
+function setToken(t) { localStorage.setItem(TOKEN_KEY, t); }
+function clearToken() { localStorage.removeItem(TOKEN_KEY); }
+
+async function api(path, opts = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  const token = getToken();
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  const res = await fetch(API + path, { ...opts, headers });
+  const data = await res.json();
+  if (res.status === 401) { clearToken(); showLogin(); throw new Error('未授权'); }
+  return data;
+}
+
+/* ── Auth ── */
+function showLogin() {
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+function showApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  loadPage('messages');
+}
+
+async function doLogin() {
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  errEl.textContent = '';
+  if (!username || !password) { errEl.textContent = '请填写账号和密码'; return; }
+  try {
+    const data = await api('/api/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) });
+    if (data.code === 0 && data.data?.token) {
+      setToken(data.data.token);
+      if (data.data.user?.nickname) document.getElementById('adminName').textContent = data.data.user.nickname;
+      showApp();
+    } else {
+      errEl.textContent = data.message || '登录失败';
+    }
+  } catch (e) { errEl.textContent = '网络错误'; }
+}
+
+document.getElementById('loginPassword').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+function doLogout() { clearToken(); showLogin(); }
+
+/* ── Navigation ── */
+const pageTitles = { messages: '留言板/客服', orders: '订单管理', products: '商品管理' };
+
+function switchPage(name) {
+  document.querySelectorAll('.sidebar nav a').forEach(a => a.classList.toggle('active', a.dataset.page === name));
+  document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + name));
+  document.getElementById('pageTitle').textContent = pageTitles[name] || name;
+  loadPage(name);
+}
+
+function loadPage(name) {
+  if (name === 'messages') loadConversations();
+  else if (name === 'orders') loadOrders();
+  else if (name === 'products') loadProducts();
+}
+
+/* ── Messages ── */
+let conversations = [];
+let activeUserId = null;
+
+async function loadConversations() {
+  const card = document.getElementById('convListCard');
+  card.innerHTML = '<div class="loading">加载中...</div>';
+  try {
+    const data = await api('/api/messages/admin/conversations');
+    conversations = data.data || [];
+    renderConversations();
+  } catch { card.innerHTML = '<div class="empty">加载失败</div>'; }
+}
+
+function renderConversations() {
+  const card = document.getElementById('convListCard');
+  if (!conversations.length) { card.innerHTML = '<div class="empty">暂无对话</div>'; return; }
+  card.innerHTML = conversations.map(c => {
+    const name = c.user?.nickname || c.user?.username || ('用户' + c.userId);
+    const preview = c.lastMessage?.content || '';
+    const time = c.lastMessage?.createdAt ? formatTime(c.lastMessage.createdAt) : '';
+    const unread = c.unreadCount || 0;
+    return `<div class="conv-item${activeUserId == c.userId ? ' active' : ''}" onclick="openChat(${c.userId})">
+      <div class="name">${esc(name)}${unread ? '<span class="unread">' + unread + '</span>' : ''}<span class="time">${time}</span></div>
+      <div class="preview">${esc(preview)}</div>
+    </div>`;
+  }).join('');
+}
+
+async function openChat(userId) {
+  activeUserId = userId;
+  renderConversations();
+  const chatCard = document.getElementById('chatCard');
+  chatCard.innerHTML = '<div class="chat-header">加载中...</div><div class="chat-messages"></div>';
+  try {
+    const data = await api('/api/messages/admin/' + userId);
+    const msgs = data.data || [];
+    const conv = conversations.find(c => c.userId == userId);
+    const name = conv?.user?.nickname || conv?.user?.username || ('用户' + userId);
+    chatCard.innerHTML = `
+      <div class="chat-header">${esc(name)}</div>
+      <div class="chat-messages" id="chatMsgs"></div>
+      <div class="chat-input">
+        <textarea id="replyInput" placeholder="输入回复内容..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendReply();}"></textarea>
+        <button class="btn btn-primary" onclick="sendReply()">发送</button>
+      </div>`;
+    const container = document.getElementById('chatMsgs');
+    msgs.forEach(m => {
+      const isAdmin = m.senderType === 'admin';
+      container.innerHTML += `<div class="msg-bubble ${isAdmin ? 'admin' : 'user'}">
+        ${m.type === 'image' ? '<img src="' + esc(m.content) + '" style="max-width:200px;border-radius:6px">' : esc(m.content)}
+        <div class="msg-time">${formatTime(m.createdAt)}</div>
+      </div>`;
+    });
+    container.scrollTop = container.scrollHeight;
+  } catch { chatCard.innerHTML = '<div class="chat-empty">加载失败</div>'; }
+}
+
+async function sendReply() {
+  if (!activeUserId) return;
+  const input = document.getElementById('replyInput');
+  const content = input.value.trim();
+  if (!content) return;
+  input.value = '';
+  try {
+    await api('/api/messages/admin/' + activeUserId + '/reply', {
+      method: 'POST', body: JSON.stringify({ content, type: 'text' })
+    });
+    openChat(activeUserId);
+  } catch { alert('发送失败'); }
+}
+
+/* ── Orders ── */
+let allOrders = [];
+
+async function loadOrders() {
+  const tbody = document.getElementById('orderTableBody');
+  tbody.innerHTML = '<tr><td colspan="7" class="loading">加载中...</td></tr>';
+  try {
+    const data = await api('/api/orders/admin/list');
+    allOrders = data.data?.orders || data.data || [];
+    renderOrders(allOrders);
+  } catch { tbody.innerHTML = '<tr><td colspan="7" class="empty">加载失败</td></tr>'; }
+}
+
+function filterOrders() {
+  const q = document.getElementById('orderSearch').value.toLowerCase();
+  const st = document.getElementById('orderStatusFilter').value;
+  const filtered = allOrders.filter(o => {
+    if (st && o.status !== st) return false;
+    if (q && !(o.orderNo || '').toLowerCase().includes(q) && !(o.user?.nickname || '').toLowerCase().includes(q)) return false;
+    return true;
+  });
+  renderOrders(filtered);
+}
+
+const statusMap = {
+  pending: ['待付款', 'badge-warning'], paid: ['已付款', 'badge-info'],
+  shipped: ['已发货', 'badge-info'], delivered: ['已送达', 'badge-success'],
+  completed: ['已完成', 'badge-success'], cancelled: ['已取消', 'badge-gray'],
+  refunding: ['退款中', 'badge-danger'], refunded: ['已退款', 'badge-gray']
+};
+
+function renderOrders(orders) {
+  const tbody = document.getElementById('orderTableBody');
+  if (!orders.length) { tbody.innerHTML = '<tr><td colspan="7" class="empty">暂无订单</td></tr>'; return; }
+  tbody.innerHTML = orders.map(o => {
+    const [label, cls] = statusMap[o.status] || [o.status, 'badge-gray'];
+    const tracking = o.trackingNo ? `${o.trackingCompany || ''} ${o.trackingNo}` : '-';
+    const username = o.user?.nickname || o.user?.username || '-';
+    return `<tr>
+      <td style="font-family:monospace;font-size:12px">${esc(o.orderNo || o.id)}</td>
+      <td>${esc(username)}</td>
+      <td>¥${Number(o.totalAmount || 0).toFixed(2)}</td>
+      <td><span class="badge ${cls}">${label}</span></td>
+      <td style="font-size:12px">${esc(tracking)}</td>
+      <td style="font-size:12px">${formatTime(o.createdAt)}</td>
+      <td>
+        ${o.status === 'paid' ? `<button class="btn btn-sm btn-success" onclick="openTracking('${o.id}')">发货</button>` : ''}
+        ${o.status === 'shipped' ? `<button class="btn btn-sm btn-outline" onclick="openTracking('${o.id}')">改物流</button>` : ''}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openTracking(orderId) {
+  document.getElementById('trackingOrderId').value = orderId;
+  document.getElementById('trackingNo').value = '';
+  document.getElementById('trackingModal').classList.add('show');
+}
+
+async function submitTracking() {
+  const orderId = document.getElementById('trackingOrderId').value;
+  const trackingCompany = document.getElementById('trackingCompany').value;
+  const trackingNo = document.getElementById('trackingNo').value.trim();
+  if (!trackingNo) { alert('请输入物流单号'); return; }
+  try {
+    await api('/api/orders/admin/' + orderId + '/tracking', {
+      method: 'PUT', body: JSON.stringify({ trackingCompany, trackingNo })
+    });
+    closeModal('trackingModal');
+    loadOrders();
+  } catch { alert('更新失败'); }
+}
+
+/* ── Products ── */
+let allProducts = [];
+
+async function loadProducts() {
+  const tbody = document.getElementById('productTableBody');
+  tbody.innerHTML = '<tr><td colspan="7" class="loading">加载中...</td></tr>';
+  try {
+    const data = await api('/api/products');
+    allProducts = data.data?.products || data.data || [];
+    renderProducts(allProducts);
+  } catch { tbody.innerHTML = '<tr><td colspan="7" class="empty">加载失败</td></tr>'; }
+}
+
+function filterProducts() {
+  const q = document.getElementById('productSearch').value.toLowerCase();
+  const filtered = allProducts.filter(p => (p.name || '').toLowerCase().includes(q));
+  renderProducts(filtered);
+}
+
+function renderProducts(products) {
+  const tbody = document.getElementById('productTableBody');
+  if (!products.length) { tbody.innerHTML = '<tr><td colspan="7" class="empty">暂无商品</td></tr>'; return; }
+  tbody.innerHTML = products.map(p => {
+    const stClass = p.status === 'active' ? 'badge-success' : 'badge-gray';
+    const stLabel = p.status === 'active' ? '上架' : '下架';
+    return `<tr>
+      <td>${p.id}</td>
+      <td>${esc(p.name)}</td>
+      <td>¥${Number(p.price || 0).toFixed(2)}</td>
+      <td>${p.stock ?? '-'}</td>
+      <td><span class="badge ${stClass}">${stLabel}</span></td>
+      <td style="font-size:12px">${formatTime(p.createdAt)}</td>
+      <td class="flex gap-2">
+        <button class="btn btn-sm btn-outline" onclick="editProduct(${p.id})">编辑</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteProduct(${p.id}, '${esc(p.name)}')">删除</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openProductModal(product) {
+  document.getElementById('productModalTitle').textContent = product ? '编辑商品' : '添加商品';
+  document.getElementById('productEditId').value = product ? product.id : '';
+  document.getElementById('pName').value = product?.name || '';
+  document.getElementById('pDesc').value = product?.description || '';
+  document.getElementById('pPrice').value = product?.price || '';
+  document.getElementById('pOriginalPrice').value = product?.originalPrice || '';
+  document.getElementById('pStock').value = product?.stock ?? '';
+  document.getElementById('pCategory').value = product?.category || '';
+  document.getElementById('pImage').value = product?.mainImage || product?.image || '';
+  document.getElementById('pStatus').value = product?.status || 'active';
+  document.getElementById('productModal').classList.add('show');
+}
+
+function editProduct(id) {
+  const p = allProducts.find(x => x.id === id);
+  if (p) openProductModal(p);
+}
+
+async function submitProduct() {
+  const id = document.getElementById('productEditId').value;
+  const body = {
+    name: document.getElementById('pName').value.trim(),
+    description: document.getElementById('pDesc').value.trim(),
+    price: parseFloat(document.getElementById('pPrice').value) || 0,
+    originalPrice: parseFloat(document.getElementById('pOriginalPrice').value) || undefined,
+    stock: parseInt(document.getElementById('pStock').value) || 0,
+    category: document.getElementById('pCategory').value.trim(),
+    mainImage: document.getElementById('pImage').value.trim(),
+    status: document.getElementById('pStatus').value
+  };
+  if (!body.name) { alert('请填写商品名称'); return; }
+  if (!body.price) { alert('请填写价格'); return; }
+  try {
+    if (id) {
+      await api('/api/products/' + id, { method: 'PUT', body: JSON.stringify(body) });
+    } else {
+      await api('/api/products', { method: 'POST', body: JSON.stringify(body) });
+    }
+    closeModal('productModal');
+    loadProducts();
+  } catch { alert('保存失败'); }
+}
+
+async function deleteProduct(id, name) {
+  if (!confirm('确认删除商品「' + name + '」？')) return;
+  try {
+    await api('/api/products/' + id, { method: 'DELETE' });
+    loadProducts();
+  } catch { alert('删除失败'); }
+}
+
+/* ── Util ── */
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('show'); });
+});
+
+function esc(s) {
+  if (!s) return '';
+  const d = document.createElement('div');
+  d.textContent = String(s);
+  return d.innerHTML;
+}
+
+function formatTime(t) {
+  if (!t) return '';
+  const d = new Date(t);
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  if (d.toDateString() === now.toDateString()) return pad(d.getHours()) + ':' + pad(d.getMinutes());
+  if (d.getFullYear() === now.getFullYear()) return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  return d.getFullYear() + '/' + (d.getMonth() + 1) + '/' + d.getDate();
+}
+
+/* ── Init ── */
+if (getToken()) { showApp(); } else { showLogin(); }
+</script>
+</body>
+</html>

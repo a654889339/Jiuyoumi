@@ -27,4 +27,22 @@ module.exports = {
     key: process.env.KUAIDI100_KEY || '',
     customer: process.env.KUAIDI100_CUSTOMER || '',
   },
+  email: {
+    enabled: process.env.EMAIL_ENABLED === 'true',
+    host: process.env.EMAIL_HOST || 'smtp.qq.com',
+    port: parseInt(process.env.EMAIL_PORT || '587'),
+    username: process.env.EMAIL_USERNAME || '',
+    password: process.env.EMAIL_PASSWORD || '',
+    from: process.env.EMAIL_FROM || '',
+    fromName: process.env.EMAIL_FROM_NAME || '九柚米',
+  },
+  sms: {
+    enabled: process.env.SMS_ENABLED === 'true',
+    secretId: process.env.TENCENT_SMS_SECRET_ID || '',
+    secretKey: process.env.TENCENT_SMS_SECRET_KEY || '',
+    smsSdkAppId: process.env.TENCENT_SMS_APP_ID || '',
+    signName: process.env.TENCENT_SMS_SIGN_NAME || '九柚米',
+    templateId: process.env.TENCENT_SMS_TEMPLATE_ID || '',
+    codeExpireMinutes: 5,
+  },
 };

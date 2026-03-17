@@ -10,6 +10,7 @@
     "pages/cart/cart",
     "pages/checkout/checkout",
     "pages/login/login",
+    "pages/register/register",
     "pages/address/address",
     "pages/address-edit/address-edit",
     "pages/profile-edit/profile-edit"

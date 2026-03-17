@@ -47,8 +47,9 @@ request.interceptors.response.use(
     const friendlyMessage = getFriendlyMessage(error);
     if (error.response?.status === 401) {
       localStorage.removeItem('jym_token');
+      const currentPath = router.currentRoute?.value?.fullPath;
       if (!isPublicPath(router.currentRoute?.value?.path)) {
-        router.replace('/login');
+        router.push({ path: '/login', query: { redirect: currentPath } });
       }
     }
     return Promise.reject(new Error(friendlyMessage));
