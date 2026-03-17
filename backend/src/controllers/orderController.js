@@ -1,4 +1,4 @@
-const { Order, OrderItem, User, Product } = require('../models');
+const { Order, OrderItem, OrderHistory, User, Product } = require('../models');
 const config = require('../config');
 
 function generateOrderNo() {
@@ -248,8 +248,16 @@ exports.adminUpdateStatus = async (req, res) => {
     }
     const order = await Order.findByPk(req.params.id);
     if (!order) return res.status(404).json({ code: 404, message: '订单不存在' });
+    const oldStatus = order.status;
     order.status = status;
     await order.save();
+    await OrderHistory.create({
+      orderId: order.id,
+      oldStatus,
+      newStatus: status,
+      operatorId: req.user && req.user.id,
+      remark: '后台修改状态',
+    });
     const s = STATUS_MAP[order.status];
     res.json({ code: 0, data: { ...order.toJSON(), statusText: s.text, statusType: s.type } });
   } catch (err) {
@@ -262,16 +270,42 @@ exports.adminUpdateTracking = async (req, res) => {
     const { trackingNo, trackingCompany } = req.body;
     const order = await Order.findByPk(req.params.id);
     if (!order) return res.status(404).json({ code: 404, message: '订单不存在' });
+    const oldStatus = order.status;
     order.trackingNo = trackingNo || '';
     order.trackingCompany = trackingCompany || '';
     order.trackingInfo = null;
     order.trackingLastUpdate = null;
     if (trackingNo && order.status === 'paid') {
       order.status = 'shipped';
+      await OrderHistory.create({
+        orderId: order.id,
+        oldStatus,
+        newStatus: 'shipped',
+        operatorId: req.user && req.user.id,
+        remark: '后台填写物流发货',
+      });
     }
     await order.save();
     res.json({ code: 0, data: order });
   } catch (err) {
     res.status(500).json({ code: 500, message: '更新物流信息失败' });
+  }
+};
+
+exports.adminGetOrderHistory = async (req, res) => {
+  try {
+    const histories = await OrderHistory.findAll({
+      where: { orderId: req.params.id },
+      order: [['createdAt', 'ASC']],
+    });
+    const statusMap = STATUS_MAP;
+    const list = histories.map(h => ({
+      ...h.toJSON(),
+      oldStatusText: (statusMap[h.oldStatus] && statusMap[h.oldStatus].text) || h.oldStatus,
+      newStatusText: (statusMap[h.newStatus] && statusMap[h.newStatus].text) || h.newStatus,
+    }));
+    res.json({ code: 0, data: list });
+  } catch (err) {
+    res.status(500).json({ code: 500, message: '获取订单历史失败' });
   }
 };

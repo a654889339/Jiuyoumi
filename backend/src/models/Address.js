@@ -19,6 +19,14 @@ const Address = sequelize.define('Address', {
     type: DataTypes.STRING(20),
     allowNull: false,
   },
+  country: {
+    type: DataTypes.STRING(50),
+    defaultValue: '中国大陆',
+  },
+  customCountry: {
+    type: DataTypes.STRING(100),
+    defaultValue: '',
+  },
   province: {
     type: DataTypes.STRING(50),
     defaultValue: '',

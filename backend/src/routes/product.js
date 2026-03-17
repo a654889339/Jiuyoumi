@@ -21,6 +21,7 @@ const router = Router();
 
 router.get('/categories', productController.categories);
 router.get('/sales-stats', authMiddleware, adminMiddleware, productController.salesStats);
+router.get('/admin-list', authMiddleware, adminMiddleware, productController.adminList);
 router.get('/', productController.list);
 router.get('/:id', optionalAuth, productController.detail);
 router.post('/', authMiddleware, adminMiddleware, productController.adminCreate);

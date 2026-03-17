@@ -107,9 +107,17 @@ tr:hover td { background: #f9fafb; }
 .msg-bubble.user { background: #f3f4f6; color: var(--text); align-self: flex-start; border-bottom-left-radius: 4px; }
 .msg-bubble.admin { background: var(--primary); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
 .msg-bubble .msg-time { font-size: 11px; opacity: .6; margin-top: 4px; }
-.chat-input { display: flex; gap: 10px; padding: 12px 16px; border-top: 1px solid var(--border); }
+.chat-input { display: flex; gap: 10px; padding: 12px 16px; border-top: 1px solid var(--border); align-items: center; }
+.chat-input .form-input { flex: 1; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 14px; outline: none; }
+.chat-input .form-input:focus { border-color: var(--primary); }
 .chat-input textarea { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius); resize: none; font-size: 14px; outline: none; height: 44px; }
 .chat-input textarea:focus { border-color: var(--primary); }
+.msg-row { display: flex; gap: 8px; align-items: flex-start; }
+.msg-row.admin { flex-direction: row-reverse; }
+.msg-row .msg-bubble { max-width: 70%; padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.5; word-break: break-word; }
+.msg-row.admin .msg-bubble { background: var(--primary); color: #fff; border-bottom-right-radius: 4px; }
+.msg-row.user .msg-bubble { background: #f3f4f6; color: var(--text); border-bottom-left-radius: 4px; }
+.msg-row .msg-time { font-size: 11px; opacity: .6; margin-top: 4px; }
 .chat-empty { display: flex; align-items: center; justify-content: center; flex: 1; color: var(--text-secondary); font-size: 14px; }
 
 /* Modal */
@@ -368,6 +376,40 @@ tr:hover td { background: #f9fafb; }
     <div class="form-actions">
       <button class="btn btn-outline" onclick="closeModal('trackingModal')">取消</button>
       <button class="btn btn-primary" onclick="submitTracking()">确认发货</button>
+    </div>
+  </div>
+</div>
+
+<!-- Order History Modal -->
+<div class="modal-overlay" id="orderHistoryModal">
+  <div class="modal modal-wide">
+    <h3>订单状态历史</h3>
+    <div id="orderHistoryContent"><div class="loading">加载中...</div></div>
+    <div class="form-actions">
+      <button class="btn btn-outline" onclick="closeModal('orderHistoryModal')">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- Order Status Modal -->
+<div class="modal-overlay" id="orderStatusModal">
+  <div class="modal" style="width:380px">
+    <h3>修改订单状态</h3>
+    <input type="hidden" id="orderStatusOrderId" />
+    <div class="form-group">
+      <label>新状态</label>
+      <select id="orderStatusSelect">
+        <option value="pending">待付款</option>
+        <option value="paid">已付款</option>
+        <option value="shipped">已发货</option>
+        <option value="delivered">已送达</option>
+        <option value="completed">已完成</option>
+        <option value="cancelled">已取消</option>
+      </select>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-outline" onclick="closeModal('orderStatusModal')">取消</button>
+      <button class="btn btn-primary" onclick="submitOrderStatus()">确认</button>
     </div>
   </div>
 </div>
@@ -796,10 +838,10 @@ function renderConversations() {
   var card = document.getElementById('convListCard');
   if (!conversations.length) { card.innerHTML = '<div class="empty">暂无对话</div>'; return; }
   card.innerHTML = conversations.map(function(c) {
-    var name = (c.user && (c.user.nickname || c.user.username)) || ('用户' + c.userId);
-    var preview = (c.lastMessage && c.lastMessage.content) || '';
-    var time = (c.lastMessage && c.lastMessage.createdAt) ? formatTime(c.lastMessage.createdAt) : '';
-    var unread = c.unreadCount || 0;
+    var name = (c.nickname || c.username) || ('用户' + c.userId);
+    var preview = (typeof c.lastMessage === 'string' ? c.lastMessage : (c.lastMessage && c.lastMessage.content)) || '';
+    var time = c.lastTime ? formatTime(c.lastTime) : '';
+    var unread = c.unread || 0;
     return '<div class="conv-item' + (activeUserId == c.userId ? ' active' : '') + '" onclick="openChat(' + c.userId + ')">' +
       '<div class="name">' + esc(name) + (unread ? '<span class="unread">' + unread + '</span>' : '') + '<span class="time">' + time + '</span></div>' +
       '<div class="preview">' + esc(preview) + '</div>' +
@@ -816,21 +858,26 @@ async function openChat(userId) {
     var data = await api('/api/messages/admin/' + userId);
     var msgs = data.data || [];
     var conv = conversations.find(function(c) { return c.userId == userId; });
-    var name = (conv && conv.user && (conv.user.nickname || conv.user.username)) || ('用户' + userId);
+    var name = (conv && (conv.nickname || conv.username)) || ('用户' + userId);
+    var initial = (name || '用').charAt(0);
     chatCard.innerHTML =
       '<div class="chat-header">' + esc(name) + '</div>' +
       '<div class="chat-messages" id="chatMsgs"></div>' +
       '<div class="chat-input">' +
-        '<textarea id="replyInput" placeholder="输入回复内容..." onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();sendReply();}"></textarea>' +
+        '<label style="cursor:pointer;font-size:22px;flex-shrink:0" title="发送图片">📷<input type="file" accept="image/*" style="display:none" onchange="sendAdminImage(this)" /></label>' +
+        '<input class="form-input" id="replyInput" placeholder="输入回复..." style="flex:1" onkeydown="if(event.key===\'Enter\')sendReply()" />' +
         '<button class="btn btn-primary" onclick="sendReply()">发送</button>' +
       '</div>';
     var container = document.getElementById('chatMsgs');
     msgs.forEach(function(m) {
-      var isAdmin = m.senderType === 'admin';
-      container.innerHTML += '<div class="msg-bubble ' + (isAdmin ? 'admin' : 'user') + '">' +
-        (m.type === 'image' ? '<img src="' + esc(m.content) + '" style="max-width:200px;border-radius:6px">' : esc(m.content)) +
-        '<div class="msg-time">' + formatTime(m.createdAt) + '</div>' +
-      '</div>';
+      var isAdmin = m.sender === 'admin';
+      var avatarHtml = '<div style="width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;' + (isAdmin ? 'background:#B91C1C' : 'background:#E5E7EB') + '">' +
+        '<span style="font-size:12px;font-weight:600;color:' + (isAdmin ? '#fff' : '#6B7280') + '">' + (isAdmin ? '管' : initial) + '</span></div>';
+      var bodyHtml = (m.type === 'image' ? '<img src="' + esc(m.content) + '" style="max-width:200px;border-radius:6px;display:block">' : esc(m.content)) +
+        '<div class="msg-time">' + formatTime(m.createdAt) + '</div>';
+      var rowClass = isAdmin ? 'msg-row admin' : 'msg-row user';
+      var inner = isAdmin ? (bodyHtml + avatarHtml) : (avatarHtml + bodyHtml);
+      container.innerHTML += '<div class="' + rowClass + '">' + inner + '</div>';
     });
     container.scrollTop = container.scrollHeight;
   } catch(e) { chatCard.innerHTML = '<div class="chat-empty">加载失败</div>'; }
@@ -848,6 +895,23 @@ async function sendReply() {
     });
     openChat(activeUserId);
   } catch(e) { alert('发送失败'); }
+}
+
+async function sendAdminImage(input) {
+  if (!input.files || !input.files[0] || !activeUserId) return;
+  var file = input.files[0];
+  var fd = new FormData();
+  fd.append('image', file);
+  try {
+    var res = await apiUpload('/api/messages/upload-image', fd);
+    if (res.code === 0 && res.data && res.data.url) {
+      await api('/api/messages/admin/' + activeUserId + '/reply', {
+        method: 'POST', body: JSON.stringify({ content: res.data.url, type: 'image' })
+      });
+      openChat(activeUserId);
+    } else { alert(res.message || '上传失败'); }
+  } catch(e) { alert('发送失败: ' + (e.message || e)); }
+  input.value = '';
 }
 
 /* ── Orders ── */
@@ -914,7 +978,9 @@ function renderOrders(orders) {
       '<td><span class="badge ' + cls + '">' + label + '</span></td>' +
       '<td style="font-size:12px">' + esc(tracking) + '</td>' +
       '<td style="font-size:12px">' + formatTime(o.createdAt) + '</td>' +
-      '<td>' +
+      '<td class="flex gap-2">' +
+        '<button class="btn btn-sm btn-outline" onclick="openOrderHistory(\'' + o.id + '\')">历史</button>' +
+        '<button class="btn btn-sm btn-outline" onclick="openOrderStatusModal(\'' + o.id + '\',\'' + (o.status || '') + '\')">改状态</button>' +
         (o.status === 'paid' ? '<button class="btn btn-sm btn-success" onclick="openTracking(\'' + o.id + '\')">发货</button>' : '') +
         (o.status === 'shipped' ? '<button class="btn btn-sm btn-outline" onclick="openTracking(\'' + o.id + '\')">改物流</button>' : '') +
       '</td>' +
@@ -958,6 +1024,52 @@ async function submitTracking() {
   } catch(e) { alert('更新失败'); }
 }
 
+async function openOrderHistory(orderId) {
+  document.getElementById('orderHistoryContent').innerHTML = '<div class="loading">加载中...</div>';
+  document.getElementById('orderHistoryModal').classList.add('show');
+  try {
+    var data = await api('/api/orders/admin/' + orderId + '/history');
+    var list = data.data || [];
+    if (!list.length) {
+      document.getElementById('orderHistoryContent').innerHTML = '<div class="empty">暂无状态变更记录</div>';
+      return;
+    }
+    var html = '<table><thead><tr><th>时间</th><th>原状态</th><th>新状态</th><th>备注</th></tr></thead><tbody>';
+    list.forEach(function(h) {
+      html += '<tr>' +
+        '<td style="font-size:12px;white-space:nowrap">' + formatTime(h.createdAt) + '</td>' +
+        '<td>' + esc(h.oldStatusText || h.oldStatus) + '</td>' +
+        '<td>' + esc(h.newStatusText || h.newStatus) + '</td>' +
+        '<td style="font-size:12px">' + esc(h.remark || '-') + '</td>' +
+      '</tr>';
+    });
+    html += '</tbody></table>';
+    document.getElementById('orderHistoryContent').innerHTML = html;
+  } catch(e) {
+    document.getElementById('orderHistoryContent').innerHTML = '<div class="empty">加载失败: ' + esc(e.message) + '</div>';
+  }
+}
+
+function openOrderStatusModal(orderId, currentStatus) {
+  document.getElementById('orderStatusOrderId').value = orderId;
+  document.getElementById('orderStatusSelect').value = currentStatus || 'pending';
+  document.getElementById('orderStatusModal').classList.add('show');
+}
+
+async function submitOrderStatus() {
+  var orderId = document.getElementById('orderStatusOrderId').value;
+  var status = document.getElementById('orderStatusSelect').value;
+  if (!orderId || !status) return;
+  try {
+    await api('/api/orders/admin/' + orderId + '/status', {
+      method: 'PUT',
+      body: JSON.stringify({ status: status }),
+    });
+    closeModal('orderStatusModal');
+    loadOrders();
+  } catch(e) { alert('更新失败: ' + (e.message || e)); }
+}
+
 /* ── Products ── */
 var allProducts = [];
 var productMediaItems = [];
@@ -966,7 +1078,7 @@ async function loadProducts() {
   var tbody = document.getElementById('productTableBody');
   tbody.innerHTML = '<tr><td colspan="9" class="loading">加载中...</td></tr>';
   try {
-    var data = await api('/api/products');
+    var data = await api('/api/products/admin-list');
     allProducts = (data.data && data.data.list) || data.data || [];
     renderProducts(allProducts);
   } catch(e) { tbody.innerHTML = '<tr><td colspan="9" class="empty">加载失败</td></tr>'; }
@@ -1372,7 +1484,8 @@ async function showUserDetail(userId) {
   document.getElementById('userDetailModal').classList.add('show');
   try {
     var data = await api('/api/admin/users/' + userId);
-    var u = data.data || {};
+    var resp = data.data || {};
+    var u = resp.user || resp;
     var html = '';
 
     html += '<div class="detail-section"><h4>基本信息</h4><div class="detail-grid">' +
@@ -1386,20 +1499,22 @@ async function showUserDetail(userId) {
       '<div class="label">注册时间</div><div class="value">' + formatTime(u.createdAt) + '</div>' +
     '</div></div>';
 
-    var addresses = u.addresses || [];
+    var addresses = resp.addresses || u.addresses || [];
     if (addresses.length) {
       html += '<div class="detail-section"><h4>收货地址 (' + addresses.length + ')</h4>';
       addresses.forEach(function(a) {
+        var addrPart = (a.country === '其他' ? (a.customCountry || '') : (a.country || '')) + ' ' +
+          (a.country === '中国大陆' ? ((a.province || '') + (a.city || '') + (a.district || '')) : '') + ' ' + (a.detailAddress || a.detail || a.address || '');
         html += '<div style="padding:6px 0;font-size:13px;border-bottom:1px solid var(--border)">' +
-          esc(a.name || '') + ' ' + esc(a.phone || '') + '<br>' +
-          esc((a.province || '') + (a.city || '') + (a.district || '') + (a.detail || a.address || '')) +
+          esc(a.contactName || a.name || '') + ' ' + esc(a.contactPhone || a.phone || '') + '<br>' +
+          esc(addrPart.trim()) +
           (a.isDefault ? ' <span class="badge badge-info">默认</span>' : '') +
         '</div>';
       });
       html += '</div>';
     }
 
-    var orders = u.orders || [];
+    var orders = resp.orders || u.orders || [];
     if (orders.length) {
       html += '<div class="detail-section"><h4>订单记录 (' + orders.length + ')</h4>' +
         '<table><thead><tr><th>订单号</th><th>金额</th><th>状态</th><th>时间</th></tr></thead><tbody>';
@@ -1415,7 +1530,7 @@ async function showUserDetail(userId) {
       html += '</tbody></table></div>';
     }
 
-    var favorites = u.favorites || u.favoriteProducts || [];
+    var favorites = resp.favorites || u.favorites || u.favoriteProducts || [];
     if (favorites.length) {
       html += '<div class="detail-section"><h4>收藏商品 (' + favorites.length + ')</h4>' +
         '<table><thead><tr><th>ID</th><th>商品名</th><th>价格</th></tr></thead><tbody>';

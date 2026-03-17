@@ -52,6 +52,7 @@
           </div>
         </div>
         <van-button type="warning" round size="normal" @click="addToCart">加入购物车</van-button>
+        <van-button type="danger" round size="normal" @click="buyNow">立即下单</van-button>
       </div>
 
       <van-popup v-model:show="showVideo" position="center" :style="{ width: '100%', height: '100%', background: '#000' }" @close="videoUrl = ''">
@@ -82,20 +83,34 @@ const videoUrl = ref('');
 const VIDEO_EXTS = /\.(mp4|webm|ogg|mov|avi|mkv)(\?|$)/i;
 const isVideoUrl = (url) => url && VIDEO_EXTS.test(url);
 
+const VIDEO_PLACEHOLDER = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"%3E%3Crect fill="%23f0f0f0" width="400" height="300"/%3E%3C/svg%3E';
+
 const mediaList = computed(() => {
   const items = [];
+  const norm = (v) => (v && String(v).trim()) || '';
   const mi = product.value.mediaItems || [];
   if (mi.length) {
     mi.forEach(m => {
       const isVid = m.type === 'video' || isVideoUrl(m.url);
-      items.push({ url: m.url, thumb: m.thumb || '', cover: m.thumb || '', type: isVid ? 'video' : 'image' });
+      const coverVal = norm(m.cover) || norm(m.thumb);
+      items.push({
+        url: m.url,
+        thumb: coverVal,
+        cover: isVid && !coverVal ? VIDEO_PLACEHOLDER : coverVal,
+        type: isVid ? 'video' : 'image',
+      });
     });
     return items;
   }
   const vids = product.value.videos || [];
   vids.forEach(v => {
-    if (typeof v === 'string') items.push({ url: v, thumb: '', cover: '', type: 'video' });
-    else items.push({ url: v.url, thumb: v.cover || '', cover: v.cover || '', type: 'video' });
+    const coverVal = typeof v === 'string' ? '' : norm(v.cover);
+    items.push({
+      url: typeof v === 'string' ? v : v.url,
+      thumb: coverVal,
+      cover: coverVal || VIDEO_PLACEHOLDER,
+      type: 'video',
+    });
   });
   const imgs = product.value.images || [];
   imgs.forEach(img => items.push({ url: img, type: 'image' }));

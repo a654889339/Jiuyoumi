@@ -56,7 +56,18 @@ const submitting = ref(false);
 
 const totalPrice = computed(() => orderItems.value.reduce((sum, i) => sum + Number(i.price) * i.quantity, 0).toFixed(2));
 
-const fullAddress = (addr) => [addr.province, addr.city, addr.district, addr.detailAddress].filter(Boolean).join(' ');
+const fullAddress = (addr) => {
+  const parts = [];
+  if (addr.country === '其他') parts.push(addr.customCountry || '其他');
+  else if (addr.country) parts.push(addr.country);
+  if (addr.country === '中国大陆') {
+    if (addr.province) parts.push(addr.province);
+    if (addr.city) parts.push(addr.city);
+    if (addr.district) parts.push(addr.district);
+  }
+  if (addr.detailAddress) parts.push(addr.detailAddress);
+  return parts.join(' ');
+};
 
 onMounted(async () => {
   try {

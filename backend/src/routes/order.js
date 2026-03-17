@@ -7,6 +7,7 @@ const router = Router();
 router.post('/', authMiddleware, orderController.create);
 router.get('/mine', authMiddleware, orderController.myOrders);
 router.get('/admin/list', authMiddleware, adminMiddleware, orderController.adminList);
+router.get('/admin/:id/history', authMiddleware, adminMiddleware, orderController.adminGetOrderHistory);
 router.get('/:id', authMiddleware, orderController.detail);
 router.get('/:id/tracking', authMiddleware, orderController.tracking);
 router.put('/:id/cancel', authMiddleware, orderController.cancel);

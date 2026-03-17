@@ -193,6 +193,19 @@
   color: #fff;
 }
 
+.btn-buy-now {
+  flex: 1;
+  border: none;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  padding: 20rpx 0;
+  text-align: center;
+  line-height: 1.4;
+  background: #ee0a24;
+  color: #fff;
+}
+
 .loading-page {
   display: flex;
   justify-content: center;

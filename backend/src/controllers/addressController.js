@@ -14,7 +14,7 @@ exports.list = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    const { contactName, contactPhone, province, city, district, detailAddress, isDefault } = req.body;
+    const { contactName, contactPhone, country, customCountry, province, city, district, detailAddress, isDefault } = req.body;
     if (!contactName || !contactPhone) {
       return res.status(400).json({ code: 400, message: '联系人和电话不能为空' });
     }
@@ -28,6 +28,8 @@ exports.create = async (req, res) => {
       userId: req.user.id,
       contactName: contactName.trim(),
       contactPhone: contactPhone.trim(),
+      country: (country && String(country).trim()) || '中国大陆',
+      customCountry: (customCountry && String(customCountry).trim()) || '',
       province: province?.trim() || '',
       city: city?.trim() || '',
       district: district?.trim() || '',
@@ -45,13 +47,15 @@ exports.update = async (req, res) => {
     const address = await Address.findByPk(req.params.id);
     if (!address) return res.status(404).json({ code: 404, message: '地址不存在' });
     if (address.userId !== req.user.id) return res.status(403).json({ code: 403, message: '无权操作' });
-    const { contactName, contactPhone, province, city, district, detailAddress, isDefault } = req.body;
+    const { contactName, contactPhone, country, customCountry, province, city, district, detailAddress, isDefault } = req.body;
     if (isDefault && !address.isDefault) {
       await Address.update({ isDefault: false }, { where: { userId: req.user.id } });
     }
     await address.update({
       contactName: contactName?.trim() || address.contactName,
       contactPhone: contactPhone?.trim() || address.contactPhone,
+      country: country !== undefined ? String(country).trim() : address.country,
+      customCountry: customCountry !== undefined ? String(customCountry).trim() : address.customCountry,
       province: province !== undefined ? province.trim() : address.province,
       city: city !== undefined ? city.trim() : address.city,
       district: district !== undefined ? district.trim() : address.district,

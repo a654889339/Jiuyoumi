@@ -31,7 +31,8 @@
 
     <van-cell-group inset class="menu-group">
       <van-cell title="在线客服" icon="chat-o" is-link @click="openCustomerService" />
-      <van-cell title="关于九尤米" icon="info-o" is-link />
+      <van-cell title="逛逛九尤米的小红书" icon="photo-o" is-link @click="openLink('https://xhslink.com/m/9VncMZTiFDL')" />
+      <van-cell title="逛逛九尤米的淘宝" icon="shop-o" is-link @click="openLink('https://shop.taobao.com')" />
     </van-cell-group>
 
     <div class="logout-area" v-if="userStore.isLoggedIn">
@@ -53,6 +54,10 @@ const chatWidgetRef = inject('chatWidget', ref(null));
 
 const openCustomerService = () => {
   if (chatWidgetRef?.value) chatWidgetRef.value.openWithAutoMessage('');
+};
+
+const openLink = (url) => {
+  if (url) window.open(url, '_blank');
 };
 
 const profileSubtitle = computed(() => {

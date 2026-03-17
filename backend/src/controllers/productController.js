@@ -2,6 +2,36 @@ const { Op } = require('sequelize');
 const { Product, ProductCategory, ProductHistory, ProductFavorite, User, Order, OrderItem } = require('../models');
 const sequelize = require('../config/database');
 
+exports.adminList = async (req, res) => {
+  try {
+    const { fn, col } = require('sequelize');
+    const rows = await Product.findAll({
+      include: [{ model: ProductCategory, as: 'category', attributes: ['id', 'name'] }],
+      order: [['sortOrder', 'ASC'], ['createdAt', 'DESC']],
+    });
+    const productIds = rows.map(r => r.id);
+    let favCountMap = {};
+    if (productIds.length > 0) {
+      const favRows = await ProductFavorite.findAll({
+        attributes: ['productId', [fn('COUNT', col('id')), 'cnt']],
+        where: { productId: productIds },
+        group: ['productId'],
+        raw: true,
+      });
+      favRows.forEach(f => { favCountMap[f.productId] = parseInt(f.cnt, 10); });
+    }
+    const list = rows.map(r => ({
+      ...r.toJSON(),
+      favoriteCount: favCountMap[r.id] || 0,
+      favCount: favCountMap[r.id] || 0,
+    }));
+    res.json({ code: 0, data: { list, total: list.length } });
+  } catch (err) {
+    console.error('[Product] adminList error:', err.message);
+    res.status(500).json({ code: 500, message: '获取商品列表失败' });
+  }
+};
+
 exports.list = async (req, res) => {
   try {
     const { categoryId, keyword, page = 1, pageSize = 20 } = req.query;
@@ -15,7 +45,24 @@ exports.list = async (req, res) => {
       limit: parseInt(pageSize),
       offset: (parseInt(page) - 1) * parseInt(pageSize),
     });
-    res.json({ code: 0, data: { list: rows, total: count, page: parseInt(page), pageSize: parseInt(pageSize) } });
+    const productIds = rows.map(r => r.id);
+    let favCountMap = {};
+    if (productIds.length > 0) {
+      const { fn, col } = require('sequelize');
+      const favRows = await ProductFavorite.findAll({
+        attributes: ['productId', [fn('COUNT', col('id')), 'cnt']],
+        where: { productId: productIds },
+        group: ['productId'],
+        raw: true,
+      });
+      favRows.forEach(f => { favCountMap[f.productId] = parseInt(f.cnt, 10); });
+    }
+    const list = rows.map(r => ({
+      ...r.toJSON(),
+      favoriteCount: favCountMap[r.id] || 0,
+      favCount: favCountMap[r.id] || 0,
+    }));
+    res.json({ code: 0, data: { list, total: count, page: parseInt(page), pageSize: parseInt(pageSize) } });
   } catch (err) {
     console.error('[Product] list error:', err.message);
     res.status(500).json({ code: 500, message: '获取商品列表失败' });
