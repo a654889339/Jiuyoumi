@@ -1,34 +1,36 @@
 <view class="page-index">
   <!-- Banner -->
-  <view class="banner">
-    <view class="banner-content">
-      <text class="brand-name">九尤米</text>
-      <text class="brand-sub">品质生活 · 精选好物</text>
+  <view class="hero-wrapper">
+    <view class="banner">
+      <swiper a:if="{{banners.length}}" class="banner-swipe" autoplay circular indicator-dots indicator-color="rgba(255,255,255,0.4)" indicator-active-color="#fff">
+        <swiper-item a:for="{{banners}}" a:key="id">
+          <image a:if="{{item.imageUrl}}" src="{{item.imageUrl}}" class="banner-img" mode="aspectFill" />
+          <view a:else class="banner-text" style="background: {{item.color || 'linear-gradient(135deg, #667eea, #764ba2)'}};">
+            <text class="banner-title">{{item.title}}</text>
+            <text class="banner-desc">{{item.desc}}</text>
+          </view>
+        </swiper-item>
+      </swiper>
+      <view a:else class="banner-content">
+        <text class="brand-name">九尤米</text>
+        <text class="brand-sub">品质生活 · 精选好物</text>
+      </view>
     </view>
-  </view>
 
-  <!-- 快捷导航 -->
-  <view class="nav-grid card">
-    <view class="nav-item" onTap="goProducts">
-      <view class="nav-icon icon-all">🛍</view>
-      <text class="nav-text">全部商品</text>
-    </view>
-    <view class="nav-item" onTap="goNew">
-      <view class="nav-icon icon-new">🆕</view>
-      <text class="nav-text">新品</text>
-    </view>
-    <view class="nav-item" onTap="goSale">
-      <view class="nav-icon icon-sale">🏷</view>
-      <text class="nav-text">特惠</text>
-    </view>
-    <view class="nav-item" onTap="goCart">
-      <view class="nav-icon icon-cart">🛒</view>
-      <text class="nav-text">购物车</text>
+    <!-- 快捷导航 (浮动在轮播图上) -->
+    <view class="nav-float card">
+      <view class="nav-item" a:for="{{navItems}}" a:key="title" onTap="onNavTap" data-path="{{item.path}}">
+        <view class="nav-icon" style="background: {{item.imageUrl ? 'transparent' : item.color}};">
+          <image a:if="{{item.imageUrl}}" src="{{item.imageUrl}}" class="nav-icon-img" mode="aspectFill" />
+          <text a:else class="nav-emoji">{{item.icon}}</text>
+        </view>
+        <text class="nav-text">{{item.title}}</text>
+      </view>
     </view>
   </view>
 
   <!-- 热门商品 -->
-  <view class="section">
+  <view class="section hot-section">
     <view class="section-header">
       <text class="section-title">热门商品</text>
       <text class="section-more" onTap="goProducts">查看全部 ›</text>
@@ -36,7 +38,7 @@
     <scroll-view class="hot-scroll" scroll-x="{{true}}">
       <view class="hot-list">
         <view class="hot-card" a:for="{{hotProducts}}" a:key="id" onTap="goDetail" data-id="{{item.id}}">
-          <image class="hot-img" src="{{item.imageUrl || item.image}}" mode="aspectFill" />
+          <image class="hot-img" src="{{item.coverImage || item.imageUrl || item.image}}" mode="aspectFill" />
           <view class="hot-info">
             <text class="hot-name">{{item.name}}</text>
             <text class="price">¥{{item.price}}</text>
@@ -47,32 +49,5 @@
         </view>
       </view>
     </scroll-view>
-  </view>
-
-  <!-- 推荐区域 -->
-  <view class="section">
-    <text class="section-title">为你推荐</text>
-    <view class="rec-grid">
-      <view class="rec-item rec-gift">
-        <text class="rec-icon">🎁</text>
-        <text class="rec-label">新人礼包</text>
-        <text class="rec-desc">注册即享优惠</text>
-      </view>
-      <view class="rec-item rec-quality">
-        <text class="rec-icon">✅</text>
-        <text class="rec-label">品质保障</text>
-        <text class="rec-desc">正品保证</text>
-      </view>
-      <view class="rec-item rec-speed">
-        <text class="rec-icon">🚀</text>
-        <text class="rec-label">极速发货</text>
-        <text class="rec-desc">下单即发</text>
-      </view>
-      <view class="rec-item rec-service">
-        <text class="rec-icon">💬</text>
-        <text class="rec-label">售后无忧</text>
-        <text class="rec-desc">7天无理由退换</text>
-      </view>
-    </view>
   </view>
 </view>

@@ -721,11 +721,11 @@ var HC_SECTION_OPTS_ANIM = [ { v: 'headerLogo', l: '首页Logo' }, { v: 'homeBg'
 function onHCSectionChange() {
   var sec = document.getElementById('hcSection').value;
   document.getElementById('hcIconGroup').style.display = sec === 'nav' ? 'block' : 'none';
-  document.getElementById('hcImageGroup').style.display = (sec === 'banner' || sec === 'headerLogo' || sec === 'homeBg') ? 'block' : 'none';
+  document.getElementById('hcImageGroup').style.display = (sec === 'banner' || sec === 'headerLogo' || sec === 'homeBg' || sec === 'nav') ? 'block' : 'none';
   document.getElementById('hcColorGroup').style.display = sec === 'headerLogo' || sec === 'homeBg' ? 'none' : 'block';
   document.getElementById('hcPathGroup').style.display = sec === 'nav' ? 'block' : 'none';
   var lbl = document.getElementById('hcImageLabel');
-  if (lbl) lbl.textContent = sec === 'headerLogo' ? '首页Logo图片' : (sec === 'homeBg' ? '首页背景图' : '轮播图');
+  if (lbl) lbl.textContent = sec === 'headerLogo' ? '首页Logo图片' : (sec === 'homeBg' ? '首页背景图' : (sec === 'nav' ? '导航图标图片(可选,上传后替代图标)' : '轮播图'));
 }
 
 function openHCEditor(id) {

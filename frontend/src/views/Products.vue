@@ -6,8 +6,8 @@
 
     <div class="category-nav">
       <div class="category-scroll">
-        <a v-for="cat in categories" :key="cat.id" class="category-item" :class="{ active: selectedCat === cat.id }" @click="selectCategory(cat.id)">{{ cat.name }}</a>
         <a class="category-item" :class="{ active: !selectedCat }" @click="selectCategory(null)">全部</a>
+        <a v-for="cat in categories" :key="cat.id" class="category-item" :class="{ active: selectedCat === cat.id }" @click="selectCategory(cat.id)">{{ cat.name }}</a>
       </div>
     </div>
 

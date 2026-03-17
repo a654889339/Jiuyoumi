@@ -28,8 +28,9 @@
         </div>
         <div class="nav-grid">
           <div v-for="item in navItems" :key="item.path" class="nav-item" @click="$router.push(item.path)">
-            <div class="nav-icon" :style="{ background: item.color }">
-              <van-icon :name="item.icon" size="24" color="#fff" />
+            <div class="nav-icon" :style="{ background: item.imageUrl ? 'transparent' : item.color }">
+              <img v-if="item.imageUrl" :src="item.imageUrl" class="nav-icon-img" alt="" />
+              <van-icon v-else :name="item.icon" size="24" color="#fff" />
             </div>
             <span>{{ item.title }}</span>
           </div>
@@ -96,6 +97,7 @@ onMounted(async () => {
     if (navConfig.length) {
       navItems.value = navConfig.sort((a, b) => a.sortOrder - b.sortOrder).map(i => ({
         title: i.title, icon: i.icon || 'apps-o', path: i.path || '/products', color: i.color || '#667eea',
+        imageUrl: i.imageUrl || '',
       }));
     }
     const bannerList = items.filter(i => i.section === 'banner' && i.status === 'active').sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
@@ -188,7 +190,8 @@ onMounted(async () => {
 .nav-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
 .nav-item { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; transition: transform 0.2s; }
 .nav-item:active { transform: scale(0.92); }
-.nav-icon { width: 50px; height: 50px; border-radius: 16px; display: flex; align-items: center; justify-content: center; }
+.nav-icon { width: 50px; height: 50px; border-radius: 16px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.nav-icon-img { width: 100%; height: 100%; object-fit: cover; border-radius: 16px; }
 .nav-item span { font-size: 12px; color: var(--jym-text-secondary); }
 
 .product-scroll { display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
