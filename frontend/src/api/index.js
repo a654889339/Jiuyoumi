@@ -13,6 +13,7 @@ export const productApi = {
   categories: () => request.get('/products/categories'),
   list: (params) => request.get('/products', { params }),
   detail: (id) => request.get(`/products/${id}`),
+  toggleFavorite: (productId) => request.post('/products/favorite', { productId }),
 };
 
 export const orderApi = {

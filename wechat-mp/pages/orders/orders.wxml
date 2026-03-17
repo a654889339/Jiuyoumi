@@ -47,13 +47,21 @@
       </view>
 
       <view class="order-footer">
-        <text class="order-total">合计: <text class="price">¥{{item.totalAmount}}</text></text>
+        <text class="order-total">合计: <text class="price">¥{{item.totalPrice || item.totalAmount}}</text></text>
         <view class="order-actions" catchtap="">
           <button class="btn-sm btn-outline" wx:if="{{item.trackingNo}}" catchtap="viewTracking" data-id="{{item.id}}">查看物流</button>
           <button class="btn-sm btn-danger-outline" wx:if="{{item.status === 'pending'}}" catchtap="cancelOrder" data-id="{{item.id}}">取消订单</button>
         </view>
       </view>
     </view>
+  </view>
+
+  <!-- 加载更多 -->
+  <view class="loading-more" wx:if="{{loadingMore}}">
+    <text>加载更多...</text>
+  </view>
+  <view class="no-more" wx:if="{{finished && orders.length > 0}}">
+    <text>没有更多订单了</text>
   </view>
 
   <view class="empty" wx:if="{{!loading && orders.length === 0}}">

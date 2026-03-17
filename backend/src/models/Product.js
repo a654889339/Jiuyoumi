@@ -31,6 +31,21 @@ const Product = sequelize.define('Product', {
     type: DataTypes.JSON,
     defaultValue: [],
   },
+  videos: {
+    type: DataTypes.JSON,
+    defaultValue: [],
+  },
+  mediaItems: {
+    type: DataTypes.TEXT('long'),
+    allowNull: true,
+    get() {
+      const raw = this.getDataValue('mediaItems');
+      try { return JSON.parse(raw || '[]'); } catch { return []; }
+    },
+    set(val) {
+      this.setDataValue('mediaItems', JSON.stringify(val || []));
+    },
+  },
   categoryId: {
     type: DataTypes.INTEGER,
     allowNull: true,

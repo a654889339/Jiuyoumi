@@ -116,6 +116,7 @@ tr:hover td { background: #f9fafb; }
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 1000; align-items: center; justify-content: center; }
 .modal-overlay.show { display: flex; }
 .modal { background: var(--card); border-radius: 12px; padding: 28px; width: 520px; max-height: 85vh; overflow-y: auto; box-shadow: 0 8px 40px rgba(0,0,0,.15); }
+.modal-wide { width: 700px; }
 .modal h3 { font-size: 18px; margin-bottom: 20px; }
 .form-group { margin-bottom: 16px; }
 .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary); }
@@ -131,6 +132,38 @@ tr:hover td { background: #f9fafb; }
 .text-right { text-align: right; }
 .mt-2 { margin-top: 8px; }
 .mb-2 { margin-bottom: 8px; }
+
+.pagination { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 16px; flex-wrap: wrap; }
+.pagination button { min-width: 36px; height: 36px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); color: var(--text); font-size: 13px; cursor: pointer; transition: all .15s; }
+.pagination button:hover:not([disabled]) { border-color: var(--primary); color: var(--primary); }
+.pagination button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.pagination button[disabled] { opacity: .4; cursor: not-allowed; }
+.pagination .page-info { font-size: 13px; color: var(--text-secondary); margin: 0 8px; }
+
+/* Media upload */
+.media-upload-zone { border: 2px dashed var(--border); border-radius: var(--radius); padding: 16px; text-align: center; margin-top: 6px; }
+.media-upload-zone:hover { border-color: var(--primary); }
+.media-preview-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.media-preview-item { position: relative; width: 80px; height: 80px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
+.media-preview-item img { width: 100%; height: 100%; object-fit: cover; }
+.media-preview-item video { width: 100%; height: 100%; object-fit: cover; }
+.media-preview-item .remove-btn { position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; background: rgba(0,0,0,.6); color: #fff; border: none; border-radius: 50%; font-size: 12px; line-height: 20px; text-align: center; cursor: pointer; }
+.media-preview-item .cover-badge { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(102,126,234,.85); color: #fff; font-size: 10px; text-align: center; padding: 1px; }
+.media-preview-item .video-badge { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,.6); color: #fff; font-size: 10px; text-align: center; padding: 1px; }
+
+/* Period selector */
+.period-selector { display: flex; gap: 4px; }
+.period-selector button { padding: 6px 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); color: var(--text); font-size: 13px; cursor: pointer; transition: all .15s; }
+.period-selector button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* User detail sections */
+.detail-section { margin-bottom: 20px; }
+.detail-section h4 { font-size: 14px; font-weight: 600; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; font-size: 13px; }
+.detail-grid .label { color: var(--text-secondary); }
+.detail-grid .value { font-weight: 500; }
+.link-btn { background: none; border: none; color: var(--primary); cursor: pointer; font-size: inherit; text-decoration: underline; padding: 0; }
+.link-btn:hover { color: var(--primary-dark); }
 </style>
 </head>
 <body>
@@ -155,6 +188,8 @@ tr:hover td { background: #f9fafb; }
       <a href="#" data-page="messages" class="active" onclick="switchPage('messages')">💬 留言板/客服</a>
       <a href="#" data-page="orders" onclick="switchPage('orders')">📦 订单管理</a>
       <a href="#" data-page="products" onclick="switchPage('products')">🛍️ 商品管理</a>
+      <a href="#" data-page="sales" onclick="switchPage('sales')">📊 销售统计</a>
+      <a href="#" data-page="users" onclick="switchPage('users')">👥 用户管理</a>
     </nav>
     <div class="user-info">
       <div id="adminName">管理员</div>
@@ -189,7 +224,7 @@ tr:hover td { background: #f9fafb; }
       <div id="page-orders" class="page">
         <div class="toolbar">
           <input type="text" id="orderSearch" placeholder="搜索订单号/用户..." oninput="filterOrders()">
-          <select id="orderStatusFilter" onchange="filterOrders()">
+          <select id="orderStatusFilter" onchange="loadOrders(1)">
             <option value="">全部状态</option>
             <option value="pending">待付款</option>
             <option value="paid">已付款</option>
@@ -197,6 +232,11 @@ tr:hover td { background: #f9fafb; }
             <option value="delivered">已送达</option>
             <option value="completed">已完成</option>
             <option value="cancelled">已取消</option>
+          </select>
+          <select id="orderPageSize" onchange="loadOrders(1)">
+            <option value="20">每页20条</option>
+            <option value="50">每页50条</option>
+            <option value="100">每页100条</option>
           </select>
           <button class="btn btn-outline btn-sm" onclick="loadOrders()">刷新</button>
         </div>
@@ -206,6 +246,7 @@ tr:hover td { background: #f9fafb; }
             <tbody id="orderTableBody"><tr><td colspan="7" class="loading">加载中...</td></tr></tbody>
           </table>
         </div>
+        <div class="pagination" id="orderPagination"></div>
       </div>
 
       <!-- Products Page -->
@@ -217,10 +258,45 @@ tr:hover td { background: #f9fafb; }
         </div>
         <div class="card">
           <table>
-            <thead><tr><th>ID</th><th>商品名</th><th>价格</th><th>库存</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead>
-            <tbody id="productTableBody"><tr><td colspan="7" class="loading">加载中...</td></tr></tbody>
+            <thead><tr><th>ID</th><th>商品名</th><th>价格</th><th>库存</th><th>状态</th><th>创建时间</th><th>历史</th><th>关注</th><th>操作</th></tr></thead>
+            <tbody id="productTableBody"><tr><td colspan="9" class="loading">加载中...</td></tr></tbody>
           </table>
         </div>
+      </div>
+
+      <!-- Sales Page -->
+      <div id="page-sales" class="page">
+        <div class="toolbar">
+          <div class="period-selector" id="salesPeriodSelector">
+            <button class="active" data-period="day" onclick="switchSalesPeriod('day')">日</button>
+            <button data-period="week" onclick="switchSalesPeriod('week')">周</button>
+            <button data-period="month" onclick="switchSalesPeriod('month')">月</button>
+            <button data-period="year" onclick="switchSalesPeriod('year')">年</button>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="loadSalesStats()">刷新</button>
+        </div>
+        <div class="card">
+          <table>
+            <thead><tr><th>时间段</th><th>商品名称</th><th>销量</th><th>销售额</th></tr></thead>
+            <tbody id="salesTableBody"><tr><td colspan="4" class="loading">加载中...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Users Page -->
+      <div id="page-users" class="page">
+        <div class="toolbar">
+          <input type="text" id="userSearch" placeholder="搜索用户名/手机号..." style="width:260px">
+          <button class="btn btn-primary btn-sm" onclick="loadUsers(1)">搜索</button>
+          <button class="btn btn-outline btn-sm" onclick="document.getElementById('userSearch').value='';loadUsers(1)">重置</button>
+        </div>
+        <div class="card">
+          <table>
+            <thead><tr><th>ID</th><th>用户名</th><th>昵称</th><th>手机</th><th>邮箱</th><th>角色</th><th>状态</th><th>注册时间</th><th>操作</th></tr></thead>
+            <tbody id="userTableBody"><tr><td colspan="9" class="loading">加载中...</td></tr></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="userPagination"></div>
       </div>
 
     </div>
@@ -258,7 +334,7 @@ tr:hover td { background: #f9fafb; }
 
 <!-- Product Modal -->
 <div class="modal-overlay" id="productModal">
-  <div class="modal">
+  <div class="modal" style="width:600px">
     <h3 id="productModalTitle">添加商品</h3>
     <input type="hidden" id="productEditId">
     <div class="form-group">
@@ -283,11 +359,20 @@ tr:hover td { background: #f9fafb; }
     </div>
     <div class="form-group">
       <label>分类</label>
-      <input type="text" id="pCategory" placeholder="例如: 水果, 零食">
+      <input type="text" id="pCategory" placeholder="例如: 水果, 零食 (输入分类名或ID)">
     </div>
     <div class="form-group">
-      <label>主图 URL</label>
-      <input type="text" id="pImage" placeholder="https://...">
+      <label>封面图 (coverImage)</label>
+      <input type="text" id="pCoverImage" placeholder="https://... 或通过下方上传">
+    </div>
+    <div class="form-group">
+      <label>媒体文件（图片/视频）</label>
+      <div class="media-upload-zone" id="mediaUploadZone">
+        <input type="file" id="mediaFileInput" accept="image/*,video/*" multiple style="display:none" onchange="handleMediaUpload(this.files)">
+        <button class="btn btn-outline btn-sm" onclick="document.getElementById('mediaFileInput').click()">📁 选择文件上传</button>
+        <span style="font-size:12px;color:var(--text-secondary);margin-left:8px">支持图片和视频，可多选</span>
+      </div>
+      <div class="media-preview-list" id="mediaPreviewList"></div>
     </div>
     <div class="form-group">
       <label>状态</label>
@@ -303,6 +388,39 @@ tr:hover td { background: #f9fafb; }
   </div>
 </div>
 
+<!-- Product History Modal -->
+<div class="modal-overlay" id="historyModal">
+  <div class="modal modal-wide">
+    <h3>商品变更历史</h3>
+    <div id="historyContent"><div class="loading">加载中...</div></div>
+    <div class="form-actions">
+      <button class="btn btn-outline" onclick="closeModal('historyModal')">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- Favorite Users Modal -->
+<div class="modal-overlay" id="favoriteUsersModal">
+  <div class="modal modal-wide">
+    <h3 id="favoriteUsersTitle">关注用户列表</h3>
+    <div id="favoriteUsersContent"><div class="loading">加载中...</div></div>
+    <div class="form-actions">
+      <button class="btn btn-outline" onclick="closeModal('favoriteUsersModal')">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- User Detail Modal -->
+<div class="modal-overlay" id="userDetailModal">
+  <div class="modal modal-wide" style="width:750px">
+    <h3 id="userDetailTitle">用户详情</h3>
+    <div id="userDetailContent"><div class="loading">加载中...</div></div>
+    <div class="form-actions">
+      <button class="btn btn-outline" onclick="closeModal('userDetailModal')">关闭</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const API = '';
 const TOKEN_KEY = 'jym_admin_token';
@@ -312,11 +430,21 @@ function setToken(t) { localStorage.setItem(TOKEN_KEY, t); }
 function clearToken() { localStorage.removeItem(TOKEN_KEY); }
 
 async function api(path, opts = {}) {
-  const headers = { 'Content-Type': 'application/json' };
-  const token = getToken();
+  var headers = opts.headers || { 'Content-Type': 'application/json' };
+  var token = getToken();
   if (token) headers['Authorization'] = 'Bearer ' + token;
-  const res = await fetch(API + path, { ...opts, headers });
-  const data = await res.json();
+  var res = await fetch(API + path, Object.assign({}, opts, { headers: headers }));
+  var data = await res.json();
+  if (res.status === 401) { clearToken(); showLogin(); throw new Error('未授权'); }
+  return data;
+}
+
+async function apiUpload(path, formData) {
+  var headers = {};
+  var token = getToken();
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  var res = await fetch(API + path, { method: 'POST', headers: headers, body: formData });
+  var data = await res.json();
   if (res.status === 401) { clearToken(); showLogin(); throw new Error('未授权'); }
   return data;
 }
@@ -333,16 +461,16 @@ function showApp() {
 }
 
 async function doLogin() {
-  const username = document.getElementById('loginUsername').value.trim();
-  const password = document.getElementById('loginPassword').value;
-  const errEl = document.getElementById('loginError');
+  var username = document.getElementById('loginUsername').value.trim();
+  var password = document.getElementById('loginPassword').value;
+  var errEl = document.getElementById('loginError');
   errEl.textContent = '';
   if (!username || !password) { errEl.textContent = '请填写账号和密码'; return; }
   try {
-    const data = await api('/api/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) });
-    if (data.code === 0 && data.data?.token) {
+    var data = await api('/api/auth/login', { method: 'POST', body: JSON.stringify({ username: username, password: password }) });
+    if (data.code === 0 && data.data && data.data.token) {
       setToken(data.data.token);
-      if (data.data.user?.nickname) document.getElementById('adminName').textContent = data.data.user.nickname;
+      if (data.data.user && data.data.user.nickname) document.getElementById('adminName').textContent = data.data.user.nickname;
       showApp();
     } else {
       errEl.textContent = data.message || '登录失败';
@@ -350,16 +478,16 @@ async function doLogin() {
   } catch (e) { errEl.textContent = '网络错误'; }
 }
 
-document.getElementById('loginPassword').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('loginPassword').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
 
 function doLogout() { clearToken(); showLogin(); }
 
 /* ── Navigation ── */
-const pageTitles = { messages: '留言板/客服', orders: '订单管理', products: '商品管理' };
+var pageTitles = { messages: '留言板/客服', orders: '订单管理', products: '商品管理', sales: '销售统计', users: '用户管理' };
 
 function switchPage(name) {
-  document.querySelectorAll('.sidebar nav a').forEach(a => a.classList.toggle('active', a.dataset.page === name));
-  document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + name));
+  document.querySelectorAll('.sidebar nav a').forEach(function(a) { a.classList.toggle('active', a.dataset.page === name); });
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.toggle('active', p.id === 'page-' + name); });
   document.getElementById('pageTitle').textContent = pageTitles[name] || name;
   loadPage(name);
 }
@@ -368,105 +496,125 @@ function loadPage(name) {
   if (name === 'messages') loadConversations();
   else if (name === 'orders') loadOrders();
   else if (name === 'products') loadProducts();
+  else if (name === 'sales') loadSalesStats();
+  else if (name === 'users') loadUsers(1);
 }
 
 /* ── Messages ── */
-let conversations = [];
-let activeUserId = null;
+var conversations = [];
+var activeUserId = null;
 
 async function loadConversations() {
-  const card = document.getElementById('convListCard');
+  var card = document.getElementById('convListCard');
   card.innerHTML = '<div class="loading">加载中...</div>';
   try {
-    const data = await api('/api/messages/admin/conversations');
+    var data = await api('/api/messages/admin/conversations');
     conversations = data.data || [];
     renderConversations();
-  } catch { card.innerHTML = '<div class="empty">加载失败</div>'; }
+  } catch(e) { card.innerHTML = '<div class="empty">加载失败</div>'; }
 }
 
 function renderConversations() {
-  const card = document.getElementById('convListCard');
+  var card = document.getElementById('convListCard');
   if (!conversations.length) { card.innerHTML = '<div class="empty">暂无对话</div>'; return; }
-  card.innerHTML = conversations.map(c => {
-    const name = c.user?.nickname || c.user?.username || ('用户' + c.userId);
-    const preview = c.lastMessage?.content || '';
-    const time = c.lastMessage?.createdAt ? formatTime(c.lastMessage.createdAt) : '';
-    const unread = c.unreadCount || 0;
-    return `<div class="conv-item${activeUserId == c.userId ? ' active' : ''}" onclick="openChat(${c.userId})">
-      <div class="name">${esc(name)}${unread ? '<span class="unread">' + unread + '</span>' : ''}<span class="time">${time}</span></div>
-      <div class="preview">${esc(preview)}</div>
-    </div>`;
+  card.innerHTML = conversations.map(function(c) {
+    var name = (c.user && (c.user.nickname || c.user.username)) || ('用户' + c.userId);
+    var preview = (c.lastMessage && c.lastMessage.content) || '';
+    var time = (c.lastMessage && c.lastMessage.createdAt) ? formatTime(c.lastMessage.createdAt) : '';
+    var unread = c.unreadCount || 0;
+    return '<div class="conv-item' + (activeUserId == c.userId ? ' active' : '') + '" onclick="openChat(' + c.userId + ')">' +
+      '<div class="name">' + esc(name) + (unread ? '<span class="unread">' + unread + '</span>' : '') + '<span class="time">' + time + '</span></div>' +
+      '<div class="preview">' + esc(preview) + '</div>' +
+    '</div>';
   }).join('');
 }
 
 async function openChat(userId) {
   activeUserId = userId;
   renderConversations();
-  const chatCard = document.getElementById('chatCard');
+  var chatCard = document.getElementById('chatCard');
   chatCard.innerHTML = '<div class="chat-header">加载中...</div><div class="chat-messages"></div>';
   try {
-    const data = await api('/api/messages/admin/' + userId);
-    const msgs = data.data || [];
-    const conv = conversations.find(c => c.userId == userId);
-    const name = conv?.user?.nickname || conv?.user?.username || ('用户' + userId);
-    chatCard.innerHTML = `
-      <div class="chat-header">${esc(name)}</div>
-      <div class="chat-messages" id="chatMsgs"></div>
-      <div class="chat-input">
-        <textarea id="replyInput" placeholder="输入回复内容..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendReply();}"></textarea>
-        <button class="btn btn-primary" onclick="sendReply()">发送</button>
-      </div>`;
-    const container = document.getElementById('chatMsgs');
-    msgs.forEach(m => {
-      const isAdmin = m.senderType === 'admin';
-      container.innerHTML += `<div class="msg-bubble ${isAdmin ? 'admin' : 'user'}">
-        ${m.type === 'image' ? '<img src="' + esc(m.content) + '" style="max-width:200px;border-radius:6px">' : esc(m.content)}
-        <div class="msg-time">${formatTime(m.createdAt)}</div>
-      </div>`;
+    var data = await api('/api/messages/admin/' + userId);
+    var msgs = data.data || [];
+    var conv = conversations.find(function(c) { return c.userId == userId; });
+    var name = (conv && conv.user && (conv.user.nickname || conv.user.username)) || ('用户' + userId);
+    chatCard.innerHTML =
+      '<div class="chat-header">' + esc(name) + '</div>' +
+      '<div class="chat-messages" id="chatMsgs"></div>' +
+      '<div class="chat-input">' +
+        '<textarea id="replyInput" placeholder="输入回复内容..." onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();sendReply();}"></textarea>' +
+        '<button class="btn btn-primary" onclick="sendReply()">发送</button>' +
+      '</div>';
+    var container = document.getElementById('chatMsgs');
+    msgs.forEach(function(m) {
+      var isAdmin = m.senderType === 'admin';
+      container.innerHTML += '<div class="msg-bubble ' + (isAdmin ? 'admin' : 'user') + '">' +
+        (m.type === 'image' ? '<img src="' + esc(m.content) + '" style="max-width:200px;border-radius:6px">' : esc(m.content)) +
+        '<div class="msg-time">' + formatTime(m.createdAt) + '</div>' +
+      '</div>';
     });
     container.scrollTop = container.scrollHeight;
-  } catch { chatCard.innerHTML = '<div class="chat-empty">加载失败</div>'; }
+  } catch(e) { chatCard.innerHTML = '<div class="chat-empty">加载失败</div>'; }
 }
 
 async function sendReply() {
   if (!activeUserId) return;
-  const input = document.getElementById('replyInput');
-  const content = input.value.trim();
+  var input = document.getElementById('replyInput');
+  var content = input.value.trim();
   if (!content) return;
   input.value = '';
   try {
     await api('/api/messages/admin/' + activeUserId + '/reply', {
-      method: 'POST', body: JSON.stringify({ content, type: 'text' })
+      method: 'POST', body: JSON.stringify({ content: content, type: 'text' })
     });
     openChat(activeUserId);
-  } catch { alert('发送失败'); }
+  } catch(e) { alert('发送失败'); }
 }
 
 /* ── Orders ── */
-let allOrders = [];
+var allOrders = [];
+var orderPage = 1;
+var orderTotal = 0;
+var orderTotalPages = 0;
+var orderCurrentPageSize = 20;
 
-async function loadOrders() {
-  const tbody = document.getElementById('orderTableBody');
+async function loadOrders(page) {
+  var tbody = document.getElementById('orderTableBody');
   tbody.innerHTML = '<tr><td colspan="7" class="loading">加载中...</td></tr>';
+  document.getElementById('orderPagination').innerHTML = '';
+  var status = document.getElementById('orderStatusFilter').value;
+  var pageSize = parseInt(document.getElementById('orderPageSize').value) || 20;
+  orderCurrentPageSize = pageSize;
+  if (page !== undefined) orderPage = page;
   try {
-    const data = await api('/api/orders/admin/list');
-    allOrders = data.data?.orders || data.data || [];
+    var params = new URLSearchParams({ page: orderPage, pageSize: pageSize });
+    if (status) params.set('status', status);
+    var search = document.getElementById('orderSearch').value.trim();
+    if (search) params.set('search', search);
+    var data = await api('/api/orders/admin/list?' + params.toString());
+    var d = data.data || {};
+    allOrders = d.list || [];
+    orderTotal = d.total || 0;
+    orderPage = d.page || 1;
+    orderTotalPages = d.totalPages || Math.ceil(orderTotal / pageSize);
     renderOrders(allOrders);
-  } catch { tbody.innerHTML = '<tr><td colspan="7" class="empty">加载失败</td></tr>'; }
+    renderOrderPagination();
+  } catch(e) { tbody.innerHTML = '<tr><td colspan="7" class="empty">加载失败</td></tr>'; }
 }
 
 function filterOrders() {
-  const q = document.getElementById('orderSearch').value.toLowerCase();
-  const st = document.getElementById('orderStatusFilter').value;
-  const filtered = allOrders.filter(o => {
-    if (st && o.status !== st) return false;
-    if (q && !(o.orderNo || '').toLowerCase().includes(q) && !(o.user?.nickname || '').toLowerCase().includes(q)) return false;
-    return true;
+  var q = document.getElementById('orderSearch').value.toLowerCase();
+  if (!q) { renderOrders(allOrders); return; }
+  var filtered = allOrders.filter(function(o) {
+    var no = (o.orderNo || '').toLowerCase();
+    var name = (o.user && (o.user.nickname || o.user.username)) || '';
+    return no.includes(q) || name.toLowerCase().includes(q);
   });
   renderOrders(filtered);
 }
 
-const statusMap = {
+var statusMap = {
   pending: ['待付款', 'badge-warning'], paid: ['已付款', 'badge-info'],
   shipped: ['已发货', 'badge-info'], delivered: ['已送达', 'badge-success'],
   completed: ['已完成', 'badge-success'], cancelled: ['已取消', 'badge-gray'],
@@ -474,25 +622,42 @@ const statusMap = {
 };
 
 function renderOrders(orders) {
-  const tbody = document.getElementById('orderTableBody');
+  var tbody = document.getElementById('orderTableBody');
   if (!orders.length) { tbody.innerHTML = '<tr><td colspan="7" class="empty">暂无订单</td></tr>'; return; }
-  tbody.innerHTML = orders.map(o => {
-    const [label, cls] = statusMap[o.status] || [o.status, 'badge-gray'];
-    const tracking = o.trackingNo ? `${o.trackingCompany || ''} ${o.trackingNo}` : '-';
-    const username = o.user?.nickname || o.user?.username || '-';
-    return `<tr>
-      <td style="font-family:monospace;font-size:12px">${esc(o.orderNo || o.id)}</td>
-      <td>${esc(username)}</td>
-      <td>¥${Number(o.totalAmount || 0).toFixed(2)}</td>
-      <td><span class="badge ${cls}">${label}</span></td>
-      <td style="font-size:12px">${esc(tracking)}</td>
-      <td style="font-size:12px">${formatTime(o.createdAt)}</td>
-      <td>
-        ${o.status === 'paid' ? `<button class="btn btn-sm btn-success" onclick="openTracking('${o.id}')">发货</button>` : ''}
-        ${o.status === 'shipped' ? `<button class="btn btn-sm btn-outline" onclick="openTracking('${o.id}')">改物流</button>` : ''}
-      </td>
-    </tr>`;
+  tbody.innerHTML = orders.map(function(o) {
+    var sm = statusMap[o.status] || [o.status, 'badge-gray'];
+    var label = sm[0], cls = sm[1];
+    var tracking = o.trackingNo ? ((o.trackingCompany || '') + ' ' + o.trackingNo) : '-';
+    var username = (o.user && (o.user.nickname || o.user.username)) || '-';
+    return '<tr>' +
+      '<td style="font-family:monospace;font-size:12px">' + esc(o.orderNo || String(o.id)) + '</td>' +
+      '<td>' + esc(username) + '</td>' +
+      '<td>¥' + Number(o.totalPrice || o.totalAmount || 0).toFixed(2) + '</td>' +
+      '<td><span class="badge ' + cls + '">' + label + '</span></td>' +
+      '<td style="font-size:12px">' + esc(tracking) + '</td>' +
+      '<td style="font-size:12px">' + formatTime(o.createdAt) + '</td>' +
+      '<td>' +
+        (o.status === 'paid' ? '<button class="btn btn-sm btn-success" onclick="openTracking(\'' + o.id + '\')">发货</button>' : '') +
+        (o.status === 'shipped' ? '<button class="btn btn-sm btn-outline" onclick="openTracking(\'' + o.id + '\')">改物流</button>' : '') +
+      '</td>' +
+    '</tr>';
   }).join('');
+}
+
+function renderOrderPagination() {
+  var el = document.getElementById('orderPagination');
+  if (orderTotalPages <= 1) { el.innerHTML = orderTotal ? '<span class="page-info">共 ' + orderTotal + ' 条</span>' : ''; return; }
+  var html = '<button ' + (orderPage <= 1 ? 'disabled' : 'onclick="loadOrders(' + (orderPage - 1) + ')"') + '>&laquo;</button>';
+  var start = Math.max(1, orderPage - 3);
+  var end = Math.min(orderTotalPages, orderPage + 3);
+  if (start > 1) html += '<button onclick="loadOrders(1)">1</button>' + (start > 2 ? '<span class="page-info">…</span>' : '');
+  for (var i = start; i <= end; i++) {
+    html += '<button class="' + (i === orderPage ? 'active' : '') + '" onclick="loadOrders(' + i + ')">' + i + '</button>';
+  }
+  if (end < orderTotalPages) html += (end < orderTotalPages - 1 ? '<span class="page-info">…</span>' : '') + '<button onclick="loadOrders(' + orderTotalPages + ')">' + orderTotalPages + '</button>';
+  html += '<button ' + (orderPage >= orderTotalPages ? 'disabled' : 'onclick="loadOrders(' + (orderPage + 1) + ')"') + '>&raquo;</button>';
+  html += '<span class="page-info">第 ' + orderPage + ' / ' + orderTotalPages + ' 页，共 ' + orderTotal + ' 条</span>';
+  el.innerHTML = html;
 }
 
 function openTracking(orderId) {
@@ -502,88 +667,193 @@ function openTracking(orderId) {
 }
 
 async function submitTracking() {
-  const orderId = document.getElementById('trackingOrderId').value;
-  const trackingCompany = document.getElementById('trackingCompany').value;
-  const trackingNo = document.getElementById('trackingNo').value.trim();
+  var orderId = document.getElementById('trackingOrderId').value;
+  var trackingCompany = document.getElementById('trackingCompany').value;
+  var trackingNo = document.getElementById('trackingNo').value.trim();
   if (!trackingNo) { alert('请输入物流单号'); return; }
   try {
     await api('/api/orders/admin/' + orderId + '/tracking', {
-      method: 'PUT', body: JSON.stringify({ trackingCompany, trackingNo })
+      method: 'PUT', body: JSON.stringify({ trackingCompany: trackingCompany, trackingNo: trackingNo })
     });
     closeModal('trackingModal');
     loadOrders();
-  } catch { alert('更新失败'); }
+  } catch(e) { alert('更新失败'); }
 }
 
 /* ── Products ── */
-let allProducts = [];
+var allProducts = [];
+var productUploadedImages = [];
+var productUploadedVideos = [];
 
 async function loadProducts() {
-  const tbody = document.getElementById('productTableBody');
-  tbody.innerHTML = '<tr><td colspan="7" class="loading">加载中...</td></tr>';
+  var tbody = document.getElementById('productTableBody');
+  tbody.innerHTML = '<tr><td colspan="9" class="loading">加载中...</td></tr>';
   try {
-    const data = await api('/api/products');
-    allProducts = data.data?.products || data.data || [];
+    var data = await api('/api/products');
+    allProducts = (data.data && data.data.list) || data.data || [];
     renderProducts(allProducts);
-  } catch { tbody.innerHTML = '<tr><td colspan="7" class="empty">加载失败</td></tr>'; }
+  } catch(e) { tbody.innerHTML = '<tr><td colspan="9" class="empty">加载失败</td></tr>'; }
 }
 
 function filterProducts() {
-  const q = document.getElementById('productSearch').value.toLowerCase();
-  const filtered = allProducts.filter(p => (p.name || '').toLowerCase().includes(q));
+  var q = document.getElementById('productSearch').value.toLowerCase();
+  var filtered = allProducts.filter(function(p) { return (p.name || '').toLowerCase().includes(q); });
   renderProducts(filtered);
 }
 
 function renderProducts(products) {
-  const tbody = document.getElementById('productTableBody');
-  if (!products.length) { tbody.innerHTML = '<tr><td colspan="7" class="empty">暂无商品</td></tr>'; return; }
-  tbody.innerHTML = products.map(p => {
-    const stClass = p.status === 'active' ? 'badge-success' : 'badge-gray';
-    const stLabel = p.status === 'active' ? '上架' : '下架';
-    return `<tr>
-      <td>${p.id}</td>
-      <td>${esc(p.name)}</td>
-      <td>¥${Number(p.price || 0).toFixed(2)}</td>
-      <td>${p.stock ?? '-'}</td>
-      <td><span class="badge ${stClass}">${stLabel}</span></td>
-      <td style="font-size:12px">${formatTime(p.createdAt)}</td>
-      <td class="flex gap-2">
-        <button class="btn btn-sm btn-outline" onclick="editProduct(${p.id})">编辑</button>
-        <button class="btn btn-sm btn-danger" onclick="deleteProduct(${p.id}, '${esc(p.name)}')">删除</button>
-      </td>
-    </tr>`;
+  var tbody = document.getElementById('productTableBody');
+  if (!products.length) { tbody.innerHTML = '<tr><td colspan="9" class="empty">暂无商品</td></tr>'; return; }
+  tbody.innerHTML = products.map(function(p) {
+    var stClass = p.status === 'active' ? 'badge-success' : 'badge-gray';
+    var stLabel = p.status === 'active' ? '上架' : '下架';
+    var favCount = p.favoriteCount || p.favCount || 0;
+    return '<tr>' +
+      '<td>' + p.id + '</td>' +
+      '<td>' + esc(p.name) + '</td>' +
+      '<td>¥' + Number(p.price || 0).toFixed(2) + '</td>' +
+      '<td>' + (p.stock != null ? p.stock : '-') + '</td>' +
+      '<td><span class="badge ' + stClass + '">' + stLabel + '</span></td>' +
+      '<td style="font-size:12px">' + formatTime(p.createdAt) + '</td>' +
+      '<td><button class="btn btn-sm btn-outline" onclick="showProductHistory(' + p.id + ')">查看</button></td>' +
+      '<td><button class="btn btn-sm btn-outline" onclick="showFavoriteUsers(' + p.id + ',' + favCount + ')">' + favCount + ' ❤️</button></td>' +
+      '<td class="flex gap-2">' +
+        '<button class="btn btn-sm btn-outline" onclick="editProduct(' + p.id + ')">编辑</button>' +
+        '<button class="btn btn-sm btn-danger" onclick="deleteProduct(' + p.id + ',\'' + esc(p.name).replace(/'/g, "\\'") + '\')">删除</button>' +
+      '</td>' +
+    '</tr>';
   }).join('');
 }
 
 function openProductModal(product) {
   document.getElementById('productModalTitle').textContent = product ? '编辑商品' : '添加商品';
   document.getElementById('productEditId').value = product ? product.id : '';
-  document.getElementById('pName').value = product?.name || '';
-  document.getElementById('pDesc').value = product?.description || '';
-  document.getElementById('pPrice').value = product?.price || '';
-  document.getElementById('pOriginalPrice').value = product?.originalPrice || '';
-  document.getElementById('pStock').value = product?.stock ?? '';
-  document.getElementById('pCategory').value = product?.category || '';
-  document.getElementById('pImage').value = product?.mainImage || product?.image || '';
-  document.getElementById('pStatus').value = product?.status || 'active';
+  document.getElementById('pName').value = (product && product.name) || '';
+  document.getElementById('pDesc').value = (product && product.description) || '';
+  document.getElementById('pPrice').value = (product && product.price) || '';
+  document.getElementById('pOriginalPrice').value = (product && product.originalPrice) || '';
+  document.getElementById('pStock').value = (product && product.stock != null) ? product.stock : '';
+  document.getElementById('pCategory').value = (product && (product.categoryId || product.category)) || '';
+  document.getElementById('pCoverImage').value = (product && (product.coverImage || product.mainImage || product.image)) || '';
+  document.getElementById('pStatus').value = (product && product.status) || 'active';
+
+  productUploadedImages = [];
+  productUploadedVideos = [];
+  if (product) {
+    try {
+      var imgs = product.images;
+      if (typeof imgs === 'string') imgs = JSON.parse(imgs);
+      if (Array.isArray(imgs)) productUploadedImages = imgs;
+    } catch(e) {}
+    try {
+      var vids = product.videos;
+      if (typeof vids === 'string') vids = JSON.parse(vids);
+      if (Array.isArray(vids)) productUploadedVideos = vids;
+    } catch(e) {}
+  }
+  renderMediaPreviews();
   document.getElementById('productModal').classList.add('show');
 }
 
 function editProduct(id) {
-  const p = allProducts.find(x => x.id === id);
+  var p = allProducts.find(function(x) { return x.id === id; });
   if (p) openProductModal(p);
 }
 
+function renderMediaPreviews() {
+  var container = document.getElementById('mediaPreviewList');
+  var html = '';
+  productUploadedImages.forEach(function(url, idx) {
+    var isCover = url === document.getElementById('pCoverImage').value;
+    html += '<div class="media-preview-item">' +
+      '<img src="' + esc(url) + '" alt="img">' +
+      '<button class="remove-btn" onclick="removeMedia(\'image\',' + idx + ')" title="删除">×</button>' +
+      (isCover ? '<div class="cover-badge">封面</div>' : '<div class="cover-badge" style="cursor:pointer;opacity:.7" onclick="setAsCover(' + idx + ')">设为封面</div>') +
+    '</div>';
+  });
+  productUploadedVideos.forEach(function(v, idx) {
+    var videoUrl = (typeof v === 'string') ? v : v.url;
+    html += '<div class="media-preview-item">' +
+      '<video src="' + esc(videoUrl) + '" muted></video>' +
+      '<button class="remove-btn" onclick="removeMedia(\'video\',' + idx + ')" title="删除">×</button>' +
+      '<div class="video-badge">视频</div>' +
+    '</div>';
+  });
+  container.innerHTML = html;
+}
+
+function removeMedia(type, idx) {
+  if (type === 'image') {
+    productUploadedImages.splice(idx, 1);
+  } else {
+    productUploadedVideos.splice(idx, 1);
+  }
+  renderMediaPreviews();
+}
+
+function setAsCover(idx) {
+  if (productUploadedImages[idx]) {
+    document.getElementById('pCoverImage').value = productUploadedImages[idx];
+    renderMediaPreviews();
+  }
+}
+
+async function handleMediaUpload(files) {
+  if (!files || !files.length) return;
+  for (var i = 0; i < files.length; i++) {
+    var file = files[i];
+    var formData = new FormData();
+    formData.append('file', file);
+    try {
+      var data = await apiUpload('/api/products/upload', formData);
+      if (data.code === 0 && data.data) {
+        var url = data.data.url || data.data;
+        if (file.type.startsWith('video/')) {
+          productUploadedVideos.push({ url: url, cover: '' });
+        } else {
+          productUploadedImages.push(url);
+          if (!document.getElementById('pCoverImage').value) {
+            document.getElementById('pCoverImage').value = url;
+          }
+        }
+      } else {
+        alert('上传失败: ' + (data.message || '未知错误'));
+      }
+    } catch(e) {
+      alert('上传出错: ' + e.message);
+    }
+  }
+  renderMediaPreviews();
+  document.getElementById('mediaFileInput').value = '';
+}
+
 async function submitProduct() {
-  const id = document.getElementById('productEditId').value;
-  const body = {
+  var id = document.getElementById('productEditId').value;
+  var categoryVal = document.getElementById('pCategory').value.trim();
+  var categoryId = null;
+  if (categoryVal) {
+    var parsed = parseInt(categoryVal);
+    if (!isNaN(parsed) && String(parsed) === categoryVal) {
+      categoryId = parsed;
+    } else {
+      categoryId = categoryVal;
+    }
+  }
+
+  var body = {
     name: document.getElementById('pName').value.trim(),
     description: document.getElementById('pDesc').value.trim(),
     price: parseFloat(document.getElementById('pPrice').value) || 0,
     originalPrice: parseFloat(document.getElementById('pOriginalPrice').value) || undefined,
     stock: parseInt(document.getElementById('pStock').value) || 0,
-    category: document.getElementById('pCategory').value.trim(),
-    mainImage: document.getElementById('pImage').value.trim(),
+    categoryId: categoryId,
+    coverImage: document.getElementById('pCoverImage').value.trim(),
+    images: productUploadedImages,
+    videos: productUploadedVideos,
+    mediaItems: [].concat(
+      productUploadedImages.map(function(url) { return { type: 'image', url: url }; }),
+      productUploadedVideos.map(function(v) { return { type: 'video', url: (typeof v === 'string') ? v : v.url, cover: (v && v.cover) || '' }; })
+    ),
     status: document.getElementById('pStatus').value
   };
   if (!body.name) { alert('请填写商品名称'); return; }
@@ -596,7 +866,7 @@ async function submitProduct() {
     }
     closeModal('productModal');
     loadProducts();
-  } catch { alert('保存失败'); }
+  } catch(e) { alert('保存失败'); }
 }
 
 async function deleteProduct(id, name) {
@@ -604,27 +874,271 @@ async function deleteProduct(id, name) {
   try {
     await api('/api/products/' + id, { method: 'DELETE' });
     loadProducts();
-  } catch { alert('删除失败'); }
+  } catch(e) { alert('删除失败'); }
+}
+
+/* ── Product History ── */
+async function showProductHistory(productId) {
+  document.getElementById('historyContent').innerHTML = '<div class="loading">加载中...</div>';
+  document.getElementById('historyModal').classList.add('show');
+  try {
+    var data = await api('/api/products/' + productId + '/history');
+    var list = (data.data && data.data.list) || data.data || [];
+    if (!Array.isArray(list)) list = [];
+    if (!list.length) {
+      document.getElementById('historyContent').innerHTML = '<div class="empty">暂无变更记录</div>';
+      return;
+    }
+    var html = '<table><thead><tr><th>时间</th><th>操作人</th><th>变更字段</th><th>旧值</th><th>新值</th></tr></thead><tbody>';
+    list.forEach(function(h) {
+      var user = (h.user && (h.user.nickname || h.user.username)) || (h.adminName || h.operatorName || '-');
+      var field = h.field || h.fieldName || h.changeType || '-';
+      var oldVal = h.oldValue != null ? String(h.oldValue) : '-';
+      var newVal = h.newValue != null ? String(h.newValue) : '-';
+      if (oldVal.length > 60) oldVal = oldVal.substring(0, 60) + '...';
+      if (newVal.length > 60) newVal = newVal.substring(0, 60) + '...';
+      html += '<tr>' +
+        '<td style="font-size:12px;white-space:nowrap">' + formatTime(h.createdAt || h.timestamp) + '</td>' +
+        '<td>' + esc(user) + '</td>' +
+        '<td>' + esc(field) + '</td>' +
+        '<td style="font-size:12px;max-width:150px;overflow:hidden;text-overflow:ellipsis">' + esc(oldVal) + '</td>' +
+        '<td style="font-size:12px;max-width:150px;overflow:hidden;text-overflow:ellipsis">' + esc(newVal) + '</td>' +
+      '</tr>';
+    });
+    html += '</tbody></table>';
+    document.getElementById('historyContent').innerHTML = html;
+  } catch(e) {
+    document.getElementById('historyContent').innerHTML = '<div class="empty">加载失败: ' + esc(e.message) + '</div>';
+  }
+}
+
+/* ── Favorite Users ── */
+async function showFavoriteUsers(productId, count) {
+  document.getElementById('favoriteUsersTitle').textContent = '关注用户列表 (' + (count || 0) + ')';
+  document.getElementById('favoriteUsersContent').innerHTML = '<div class="loading">加载中...</div>';
+  document.getElementById('favoriteUsersModal').classList.add('show');
+  try {
+    var data = await api('/api/products/' + productId + '/favorite-users');
+    var list = (data.data && data.data.list) || data.data || [];
+    if (!Array.isArray(list)) list = [];
+    if (!list.length) {
+      document.getElementById('favoriteUsersContent').innerHTML = '<div class="empty">暂无关注用户</div>';
+      return;
+    }
+    var html = '<table><thead><tr><th>用户ID</th><th>用户名</th><th>昵称</th><th>关注时间</th></tr></thead><tbody>';
+    list.forEach(function(u) {
+      var user = u.user || u;
+      html += '<tr>' +
+        '<td>' + (user.id || u.userId || '-') + '</td>' +
+        '<td>' + esc(user.username || '-') + '</td>' +
+        '<td>' + esc(user.nickname || '-') + '</td>' +
+        '<td style="font-size:12px">' + formatTime(u.createdAt || u.favoritedAt) + '</td>' +
+      '</tr>';
+    });
+    html += '</tbody></table>';
+    document.getElementById('favoriteUsersContent').innerHTML = html;
+  } catch(e) {
+    document.getElementById('favoriteUsersContent').innerHTML = '<div class="empty">加载失败: ' + esc(e.message) + '</div>';
+  }
+}
+
+/* ── Sales Statistics ── */
+var currentSalesPeriod = 'day';
+
+function switchSalesPeriod(period) {
+  currentSalesPeriod = period;
+  document.querySelectorAll('#salesPeriodSelector button').forEach(function(btn) {
+    btn.classList.toggle('active', btn.dataset.period === period);
+  });
+  loadSalesStats();
+}
+
+async function loadSalesStats() {
+  var tbody = document.getElementById('salesTableBody');
+  tbody.innerHTML = '<tr><td colspan="4" class="loading">加载中...</td></tr>';
+  try {
+    var data = await api('/api/products/sales-stats?period=' + currentSalesPeriod);
+    var list = (data.data && data.data.list) || data.data || [];
+    if (!Array.isArray(list)) list = [];
+    if (!list.length) {
+      tbody.innerHTML = '<tr><td colspan="4" class="empty">暂无销售数据</td></tr>';
+      return;
+    }
+    tbody.innerHTML = list.map(function(s) {
+      return '<tr>' +
+        '<td style="font-size:12px">' + esc(s.period || s.date || s.time || '-') + '</td>' +
+        '<td>' + esc(s.productName || s.name || '-') + '</td>' +
+        '<td>' + (s.quantity || s.count || 0) + '</td>' +
+        '<td>¥' + Number(s.totalAmount || s.amount || 0).toFixed(2) + '</td>' +
+      '</tr>';
+    }).join('');
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty">加载失败</td></tr>';
+  }
+}
+
+/* ── User Management ── */
+var userPage = 1;
+var userTotal = 0;
+var userTotalPages = 0;
+
+async function loadUsers(page) {
+  var tbody = document.getElementById('userTableBody');
+  tbody.innerHTML = '<tr><td colspan="9" class="loading">加载中...</td></tr>';
+  document.getElementById('userPagination').innerHTML = '';
+  if (page !== undefined) userPage = page;
+  try {
+    var params = new URLSearchParams({ page: userPage, pageSize: 20 });
+    var search = document.getElementById('userSearch').value.trim();
+    if (search) params.set('search', search);
+    var data = await api('/api/admin/users?' + params.toString());
+    var d = data.data || {};
+    var users = d.list || d.rows || data.data || [];
+    if (!Array.isArray(users)) users = [];
+    userTotal = d.total || 0;
+    userPage = d.page || page || 1;
+    userTotalPages = d.totalPages || Math.ceil(userTotal / 20) || 1;
+    renderUsers(users);
+    renderUserPagination();
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="9" class="empty">加载失败</td></tr>';
+  }
+}
+
+function renderUsers(users) {
+  var tbody = document.getElementById('userTableBody');
+  if (!users.length) { tbody.innerHTML = '<tr><td colspan="9" class="empty">暂无用户</td></tr>'; return; }
+  tbody.innerHTML = users.map(function(u) {
+    var roleLabel = u.role === 'admin' ? '<span class="badge badge-info">管理员</span>' : '<span class="badge badge-gray">用户</span>';
+    var statusLabel = u.status === 'disabled' ? '<span class="badge badge-danger">禁用</span>' : '<span class="badge badge-success">正常</span>';
+    return '<tr>' +
+      '<td>' + u.id + '</td>' +
+      '<td>' + esc(u.username || '-') + '</td>' +
+      '<td>' + esc(u.nickname || '-') + '</td>' +
+      '<td>' + esc(u.phone || '-') + '</td>' +
+      '<td>' + esc(u.email || '-') + '</td>' +
+      '<td>' + roleLabel + '</td>' +
+      '<td>' + statusLabel + '</td>' +
+      '<td style="font-size:12px">' + formatTime(u.createdAt) + '</td>' +
+      '<td><button class="btn btn-sm btn-outline" onclick="showUserDetail(' + u.id + ')">查看详情</button></td>' +
+    '</tr>';
+  }).join('');
+}
+
+function renderUserPagination() {
+  var el = document.getElementById('userPagination');
+  if (userTotalPages <= 1) { el.innerHTML = userTotal ? '<span class="page-info">共 ' + userTotal + ' 条</span>' : ''; return; }
+  var html = '<button ' + (userPage <= 1 ? 'disabled' : 'onclick="loadUsers(' + (userPage - 1) + ')"') + '>&laquo;</button>';
+  var start = Math.max(1, userPage - 3);
+  var end = Math.min(userTotalPages, userPage + 3);
+  if (start > 1) html += '<button onclick="loadUsers(1)">1</button>' + (start > 2 ? '<span class="page-info">…</span>' : '');
+  for (var i = start; i <= end; i++) {
+    html += '<button class="' + (i === userPage ? 'active' : '') + '" onclick="loadUsers(' + i + ')">' + i + '</button>';
+  }
+  if (end < userTotalPages) html += (end < userTotalPages - 1 ? '<span class="page-info">…</span>' : '') + '<button onclick="loadUsers(' + userTotalPages + ')">' + userTotalPages + '</button>';
+  html += '<button ' + (userPage >= userTotalPages ? 'disabled' : 'onclick="loadUsers(' + (userPage + 1) + ')"') + '>&raquo;</button>';
+  html += '<span class="page-info">第 ' + userPage + ' / ' + userTotalPages + ' 页，共 ' + userTotal + ' 条</span>';
+  el.innerHTML = html;
+}
+
+async function showUserDetail(userId) {
+  document.getElementById('userDetailTitle').textContent = '用户详情';
+  document.getElementById('userDetailContent').innerHTML = '<div class="loading">加载中...</div>';
+  document.getElementById('userDetailModal').classList.add('show');
+  try {
+    var data = await api('/api/admin/users/' + userId);
+    var u = data.data || {};
+    var html = '';
+
+    html += '<div class="detail-section"><h4>基本信息</h4><div class="detail-grid">' +
+      '<div class="label">ID</div><div class="value">' + (u.id || '-') + '</div>' +
+      '<div class="label">用户名</div><div class="value">' + esc(u.username || '-') + '</div>' +
+      '<div class="label">昵称</div><div class="value">' + esc(u.nickname || '-') + '</div>' +
+      '<div class="label">手机</div><div class="value">' + esc(u.phone || '-') + '</div>' +
+      '<div class="label">邮箱</div><div class="value">' + esc(u.email || '-') + '</div>' +
+      '<div class="label">角色</div><div class="value">' + esc(u.role || '-') + '</div>' +
+      '<div class="label">状态</div><div class="value">' + esc(u.status || '-') + '</div>' +
+      '<div class="label">注册时间</div><div class="value">' + formatTime(u.createdAt) + '</div>' +
+    '</div></div>';
+
+    var addresses = u.addresses || [];
+    if (addresses.length) {
+      html += '<div class="detail-section"><h4>收货地址 (' + addresses.length + ')</h4>';
+      addresses.forEach(function(a) {
+        html += '<div style="padding:6px 0;font-size:13px;border-bottom:1px solid var(--border)">' +
+          esc(a.name || '') + ' ' + esc(a.phone || '') + '<br>' +
+          esc((a.province || '') + (a.city || '') + (a.district || '') + (a.detail || a.address || '')) +
+          (a.isDefault ? ' <span class="badge badge-info">默认</span>' : '') +
+        '</div>';
+      });
+      html += '</div>';
+    }
+
+    var orders = u.orders || [];
+    if (orders.length) {
+      html += '<div class="detail-section"><h4>订单记录 (' + orders.length + ')</h4>' +
+        '<table><thead><tr><th>订单号</th><th>金额</th><th>状态</th><th>时间</th></tr></thead><tbody>';
+      orders.forEach(function(o) {
+        var sm = statusMap[o.status] || [o.status, 'badge-gray'];
+        html += '<tr>' +
+          '<td><button class="link-btn" onclick="goToOrder(\'' + esc(o.orderNo || String(o.id)) + '\')">' + esc(o.orderNo || String(o.id)) + '</button></td>' +
+          '<td>¥' + Number(o.totalPrice || o.totalAmount || 0).toFixed(2) + '</td>' +
+          '<td><span class="badge ' + sm[1] + '">' + sm[0] + '</span></td>' +
+          '<td style="font-size:12px">' + formatTime(o.createdAt) + '</td>' +
+        '</tr>';
+      });
+      html += '</tbody></table></div>';
+    }
+
+    var favorites = u.favorites || u.favoriteProducts || [];
+    if (favorites.length) {
+      html += '<div class="detail-section"><h4>收藏商品 (' + favorites.length + ')</h4>' +
+        '<table><thead><tr><th>ID</th><th>商品名</th><th>价格</th></tr></thead><tbody>';
+      favorites.forEach(function(f) {
+        var prod = f.product || f;
+        html += '<tr>' +
+          '<td>' + (prod.id || '-') + '</td>' +
+          '<td>' + esc(prod.name || '-') + '</td>' +
+          '<td>¥' + Number(prod.price || 0).toFixed(2) + '</td>' +
+        '</tr>';
+      });
+      html += '</tbody></table></div>';
+    }
+
+    document.getElementById('userDetailTitle').textContent = '用户详情 - ' + (u.nickname || u.username || 'ID:' + u.id);
+    document.getElementById('userDetailContent').innerHTML = html;
+  } catch(e) {
+    document.getElementById('userDetailContent').innerHTML = '<div class="empty">加载失败: ' + esc(e.message) + '</div>';
+  }
+}
+
+function goToOrder(orderNo) {
+  closeModal('userDetailModal');
+  switchPage('orders');
+  setTimeout(function() {
+    document.getElementById('orderSearch').value = orderNo;
+    filterOrders();
+  }, 300);
 }
 
 /* ── Util ── */
 function closeModal(id) { document.getElementById(id).classList.remove('show'); }
-document.querySelectorAll('.modal-overlay').forEach(el => {
-  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('show'); });
+document.querySelectorAll('.modal-overlay').forEach(function(el) {
+  el.addEventListener('click', function(e) { if (e.target === el) el.classList.remove('show'); });
 });
 
 function esc(s) {
   if (!s) return '';
-  const d = document.createElement('div');
+  var d = document.createElement('div');
   d.textContent = String(s);
   return d.innerHTML;
 }
 
 function formatTime(t) {
   if (!t) return '';
-  const d = new Date(t);
-  const now = new Date();
-  const pad = n => String(n).padStart(2, '0');
+  var d = new Date(t);
+  var now = new Date();
+  var pad = function(n) { return String(n).padStart(2, '0'); };
   if (d.toDateString() === now.toDateString()) return pad(d.getHours()) + ':' + pad(d.getMinutes());
   if (d.getFullYear() === now.getFullYear()) return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
   return d.getFullYear() + '/' + (d.getMonth() + 1) + '/' + d.getDate();

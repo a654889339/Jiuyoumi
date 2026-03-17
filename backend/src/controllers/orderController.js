@@ -74,20 +74,25 @@ exports.create = async (req, res) => {
 
 exports.myOrders = async (req, res) => {
   try {
-    const { status } = req.query;
+    const { status, page = 1, pageSize = 10 } = req.query;
     const where = { userId: req.user.id };
     if (status && status !== 'all') where.status = status;
 
-    const orders = await Order.findAll({
+    const limit = Math.min(Math.max(parseInt(pageSize) || 10, 1), 10);
+    const offset = (Math.max(parseInt(page) || 1, 1) - 1) * limit;
+
+    const { count, rows } = await Order.findAndCountAll({
       where,
       include: [{ model: OrderItem, as: 'items' }],
       order: [['createdAt', 'DESC']],
+      limit,
+      offset,
     });
-    const list = orders.map(o => {
+    const list = rows.map(o => {
       const s = STATUS_MAP[o.status] || STATUS_MAP.pending;
       return { ...o.toJSON(), statusText: s.text, statusType: s.type };
     });
-    res.json({ code: 0, data: list });
+    res.json({ code: 0, data: { list, total: count, page: Math.max(parseInt(page) || 1, 1), pageSize: limit } });
   } catch (err) {
     console.error('[Order] myOrders error:', err.message);
     res.status(500).json({ code: 500, message: '获取订单失败' });
@@ -211,6 +216,9 @@ exports.adminList = async (req, res) => {
     const { status, page = 1, pageSize = 20 } = req.query;
     const where = {};
     if (status && status !== 'all') where.status = status;
+    const limit = Math.min(Math.max(parseInt(pageSize) || 20, 1), 100);
+    const currentPage = Math.max(parseInt(page) || 1, 1);
+    const offset = (currentPage - 1) * limit;
     const { count, rows } = await Order.findAndCountAll({
       where,
       include: [
@@ -218,14 +226,15 @@ exports.adminList = async (req, res) => {
         { model: OrderItem, as: 'items' },
       ],
       order: [['createdAt', 'DESC']],
-      limit: parseInt(pageSize),
-      offset: (parseInt(page) - 1) * parseInt(pageSize),
+      limit,
+      offset,
     });
     const list = rows.map(o => {
       const s = STATUS_MAP[o.status] || STATUS_MAP.pending;
       return { ...o.toJSON(), statusText: s.text, statusType: s.type };
     });
-    res.json({ code: 0, data: { list, total: count, page: parseInt(page), pageSize: parseInt(pageSize) } });
+    const totalPages = Math.ceil(count / limit);
+    res.json({ code: 0, data: { list, total: count, page: currentPage, pageSize: limit, totalPages } });
   } catch (err) {
     res.status(500).json({ code: 500, message: '获取订单列表失败' });
   }

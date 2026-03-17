@@ -8,6 +8,8 @@ const Address = require('./Address');
 const Cart = require('./Cart');
 const HomeConfig = require('./HomeConfig');
 const Message = require('./Message');
+const ProductHistory = require('./ProductHistory');
+const ProductFavorite = require('./ProductFavorite');
 
 User.hasMany(Message, { foreignKey: 'userId', as: 'messages' });
 Message.belongsTo(User, { foreignKey: 'userId', as: 'user' });
@@ -30,7 +32,15 @@ User.hasMany(Cart, { foreignKey: 'userId', as: 'cartItems' });
 Cart.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 Cart.belongsTo(Product, { foreignKey: 'productId', as: 'product' });
 
-const models = { User, Product, ProductCategory, Order, OrderItem, Address, Cart, HomeConfig, Message };
+Product.hasMany(ProductHistory, { foreignKey: 'productId', as: 'histories' });
+ProductHistory.belongsTo(Product, { foreignKey: 'productId', as: 'product' });
+
+Product.hasMany(ProductFavorite, { foreignKey: 'productId', as: 'favorites' });
+ProductFavorite.belongsTo(Product, { foreignKey: 'productId', as: 'product' });
+User.hasMany(ProductFavorite, { foreignKey: 'userId', as: 'favorites' });
+ProductFavorite.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
+const models = { User, Product, ProductCategory, Order, OrderItem, Address, Cart, HomeConfig, Message, ProductHistory, ProductFavorite };
 
 const ADMIN_PASSWORD = 'Jiuyoumi@2024admin';
 

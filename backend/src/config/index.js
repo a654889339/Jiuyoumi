@@ -45,4 +45,10 @@ module.exports = {
     templateId: process.env.TENCENT_SMS_TEMPLATE_ID || '',
     codeExpireMinutes: 5,
   },
+  cos: {
+    secretId: process.env.COS_SECRET_ID || '',
+    secretKey: process.env.COS_SECRET_KEY || '',
+    bucket: process.env.COS_BUCKET || 'itsyourturnmy-1256887166',
+    region: process.env.COS_REGION || 'ap-singapore',
+  },
 };

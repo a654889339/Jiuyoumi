@@ -1,21 +1,19 @@
 <view class="page-detail" a:if="{{product}}">
-  <!-- 商品图片轮播 -->
   <view class="swiper-wrap">
     <swiper class="product-swiper" indicator-dots="{{false}}" autoplay circular onChange="onSwiperChange">
-      <swiper-item a:for="{{product.images}}" a:key="*this">
-        <image class="swiper-img" src="{{item}}" mode="aspectFill" />
+      <swiper-item a:for="{{mediaList}}" a:key="index">
+        <view a:if="{{item.type === 'video'}}" class="media-item" onTap="playVideo" data-url="{{item.url}}">
+          <image class="swiper-img" src="{{item.cover}}" mode="aspectFill" />
+          <view class="play-overlay">
+            <text class="play-icon">▶</text>
+          </view>
+        </view>
+        <image a:else class="swiper-img" src="{{item.url}}" mode="aspectFill" onTap="previewImage" data-index="{{index}}" />
       </swiper-item>
     </swiper>
-    <view class="swiper-dots">
-      <view
-        class="dot {{currentSwiper === index ? 'dot-active' : ''}}"
-        a:for="{{product.images}}"
-        a:key="*this"
-      ></view>
-    </view>
+    <view class="swipe-indicator">{{currentSwiper + 1}} / {{mediaList.length}}</view>
   </view>
 
-  <!-- 价格信息 -->
   <view class="info-card">
     <view class="price-row">
       <text class="detail-price">¥{{product.price}}</text>
@@ -24,19 +22,23 @@
     </view>
     <text class="detail-name">{{product.name}}</text>
     <text class="detail-desc" a:if="{{product.description}}">{{product.description}}</text>
+    <view class="fav-row">
+      <text class="fav-count">{{product.favCount || 0}} 人关注</text>
+    </view>
   </view>
 
-  <!-- 商品详情 -->
   <view class="desc-card" a:if="{{product.detail}}">
     <text class="section-title">商品详情</text>
     <rich-text nodes="{{product.detail}}"></rich-text>
   </view>
 
-  <!-- 底部安全区占位 -->
   <view class="bottom-placeholder"></view>
 
-  <!-- 底部操作栏 -->
   <view class="bottom-bar">
+    <view class="bar-icon" onTap="toggleFav">
+      <text class="bar-icon-emoji">{{product.isFavorited ? '❤️' : '🤍'}}</text>
+      <text class="bar-icon-text">{{product.isFavorited ? '已关注' : '关注'}}</text>
+    </view>
     <view class="bar-icon" onTap="goCart">
       <text class="bar-icon-emoji">🛒</text>
       <text class="bar-icon-text">购物车</text>

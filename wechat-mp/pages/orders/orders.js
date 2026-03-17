@@ -11,74 +11,92 @@ Page({
     activeTab: '',
     orders: [],
     loading: true,
+    loadingMore: false,
+    finished: false,
+    page: 1,
   },
 
   onLoad() {
-    this.loadOrders();
+    this.loadOrders(1);
   },
 
   onShow() {
     var tabBar = typeof this.getTabBar === 'function' ? this.getTabBar() : null;
     if (tabBar) tabBar.setData({ selected: 2 });
-    this.loadOrders();
+    this.loadOrders(1);
   },
 
-  async loadOrders() {
+  async loadOrders(page) {
     if (!app.globalData.token) {
       wx.navigateTo({ url: '/pages/login/login' });
       return;
     }
-    this.setData({ loading: true });
+    var isFirst = (page === 1);
+    if (isFirst) this.setData({ loading: true, orders: [], finished: false });
+    else this.setData({ loadingMore: true });
+
     try {
-      let url = '/orders/mine';
-      if (this.data.activeTab) url += `?status=${this.data.activeTab}`;
-      const res = await app.request({ url });
-      this.setData({ orders: res.data || [], loading: false });
+      var url = '/orders/mine?page=' + page + '&pageSize=10';
+      if (this.data.activeTab) url += '&status=' + this.data.activeTab;
+      var res = await app.request({ url: url });
+      var data = res.data || {};
+      var list = data.list || [];
+      var total = data.total || 0;
+      var newOrders = isFirst ? list : this.data.orders.concat(list);
+      this.setData({
+        orders: newOrders,
+        page: data.page || page,
+        finished: newOrders.length >= total,
+        loading: false,
+        loadingMore: false,
+      });
     } catch (e) {
-      this.setData({ loading: false });
+      this.setData({ loading: false, loadingMore: false });
     }
   },
 
   switchTab(e) {
-    this.setData({ activeTab: e.currentTarget.dataset.key });
-    this.loadOrders();
+    this.setData({ activeTab: e.currentTarget.dataset.key, page: 1 });
+    this.loadOrders(1);
   },
 
   goDetail(e) {
-    const id = e.currentTarget.dataset.id;
-    wx.navigateTo({ url: `/pages/order-detail/order-detail?id=${id}` });
+    var id = e.currentTarget.dataset.id;
+    wx.navigateTo({ url: '/pages/order-detail/order-detail?id=' + id });
   },
 
   async cancelOrder(e) {
-    const id = e.currentTarget.dataset.id;
-    const confirm = await new Promise((resolve) => {
+    var id = e.currentTarget.dataset.id;
+    var that = this;
+    var confirm = await new Promise(function(resolve) {
       wx.showModal({
         title: '确认取消',
         content: '确定要取消这个订单吗？',
-        success: (res) => resolve(res.confirm),
+        success: function(res) { resolve(res.confirm); },
       });
     });
     if (!confirm) return;
     try {
-      await app.request({ url: `/orders/${id}/cancel`, method: 'PUT' });
+      await app.request({ url: '/orders/' + id + '/cancel', method: 'PUT' });
       wx.showToast({ title: '已取消', icon: 'success' });
-      this.loadOrders();
+      that.loadOrders(1);
     } catch (e) {
-      wx.showToast({ title: e.message || '操作失败', icon: 'none' });
+      wx.showToast({ title: (e && e.message) || '操作失败', icon: 'none' });
     }
   },
 
   viewTracking(e) {
-    const id = e.currentTarget.dataset.id;
-    wx.navigateTo({ url: `/pages/order-detail/order-detail?id=${id}&showTracking=1` });
+    var id = e.currentTarget.dataset.id;
+    wx.navigateTo({ url: '/pages/order-detail/order-detail?id=' + id + '&showTracking=1' });
   },
 
-  getStatusText(status) {
-    const map = { pending: '待支付', paid: '已支付', shipped: '已发货', completed: '已完成', cancelled: '已取消' };
-    return map[status] || status;
+  onReachBottom() {
+    if (!this.data.finished && !this.data.loadingMore && !this.data.loading) {
+      this.loadOrders(this.data.page + 1);
+    }
   },
 
   onPullDownRefresh() {
-    this.loadOrders().then(() => wx.stopPullDownRefresh());
+    this.loadOrders(1).then(function() { wx.stopPullDownRefresh(); });
   },
 });

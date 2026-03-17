@@ -2,9 +2,9 @@
   <div class="orders-page">
     <van-tabs v-model:active="activeTab" sticky color="var(--jym-primary)" @change="onTabChange">
       <van-tab v-for="tab in tabs" :key="tab.key" :title="tab.name">
-        <van-pull-refresh v-model="refreshing" @refresh="loadOrders">
-          <van-loading v-if="loading" class="page-loading" size="28" vertical>加载中...</van-loading>
-          <van-empty v-else-if="!orders.length" description="暂无订单" />
+        <van-pull-refresh v-model="refreshing" @refresh="refreshOrders">
+          <van-loading v-if="loading && !orders.length" class="page-loading" size="28" vertical>加载中...</van-loading>
+          <van-empty v-else-if="!orders.length && !loading" description="暂无订单" />
           <div v-else class="order-list">
             <div v-for="order in orders" :key="order.id" class="order-card" @click="$router.push(`/orders/${order.id}`)">
               <div class="order-header">
@@ -32,6 +32,8 @@
                 </div>
               </div>
             </div>
+            <van-loading v-if="loadingMore" class="loading-more" size="20">加载更多...</van-loading>
+            <div v-if="finished && orders.length" class="no-more">没有更多订单了</div>
           </div>
         </van-pull-refresh>
       </van-tab>
@@ -41,7 +43,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { orderApi } from '@/api';
 import { showToast, showConfirmDialog } from 'vant';
@@ -49,8 +51,11 @@ import { showToast, showConfirmDialog } from 'vant';
 const router = useRouter();
 const activeTab = ref(0);
 const loading = ref(true);
+const loadingMore = ref(false);
 const refreshing = ref(false);
+const finished = ref(false);
 const orders = ref([]);
+const currentPage = ref(1);
 
 const tabs = [
   { key: 'all', name: '全部' },
@@ -61,30 +66,80 @@ const tabs = [
 
 const orderItemCount = (order) => (order.items || []).reduce((sum, i) => sum + i.quantity, 0);
 
-const loadOrders = async () => {
+const loadOrders = async (page = 1) => {
   const token = localStorage.getItem('jym_token');
   if (!token) { loading.value = false; refreshing.value = false; orders.value = []; return; }
   try {
     const status = tabs[activeTab.value].key;
-    const res = await orderApi.mine({ status });
-    orders.value = res.data || [];
+    const res = await orderApi.mine({ status, page, pageSize: 10 });
+    const data = res.data || {};
+    const list = data.list || data || [];
+    if (page === 1) {
+      orders.value = list;
+    } else {
+      orders.value = [...orders.value, ...list];
+    }
+    currentPage.value = data.page || page;
+    const total = data.total || 0;
+    finished.value = orders.value.length >= total;
   } catch (err) {
-    if (err.response?.status === 401) { showToast('请先登录'); router.push('/login'); }
-  } finally { loading.value = false; refreshing.value = false; }
+    if (String(err).includes('401') || String(err).includes('请先登录')) {
+      showToast('请先登录');
+      router.push('/login');
+    }
+  } finally {
+    loading.value = false;
+    loadingMore.value = false;
+    refreshing.value = false;
+  }
 };
 
-const onTabChange = () => { loading.value = true; orders.value = []; loadOrders(); };
+const refreshOrders = () => {
+  currentPage.value = 1;
+  finished.value = false;
+  loadOrders(1);
+};
+
+const loadMore = () => {
+  if (finished.value || loadingMore.value || loading.value) return;
+  loadingMore.value = true;
+  loadOrders(currentPage.value + 1);
+};
+
+const onTabChange = () => {
+  loading.value = true;
+  orders.value = [];
+  currentPage.value = 1;
+  finished.value = false;
+  loadOrders(1);
+};
 
 const cancelOrder = async (order) => {
   try {
     await showConfirmDialog({ title: '取消订单', message: '确定要取消该订单吗？' });
     await orderApi.cancel(order.id);
     showToast('订单已取消');
-    loadOrders();
+    refreshOrders();
   } catch { /* user cancelled */ }
 };
 
-onMounted(loadOrders);
+const handleScroll = () => {
+  const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+  const clientHeight = document.documentElement.clientHeight;
+  const scrollHeight = document.documentElement.scrollHeight;
+  if (scrollHeight - scrollTop - clientHeight < 100) {
+    loadMore();
+  }
+};
+
+onMounted(() => {
+  loadOrders(1);
+  window.addEventListener('scroll', handleScroll);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll);
+});
 </script>
 
 <style scoped>
@@ -106,4 +161,6 @@ onMounted(loadOrders);
 .order-total { font-size: 13px; color: var(--jym-text-secondary); }
 .order-total b { color: #f5576c; font-size: 16px; }
 .order-actions { display: flex; gap: 8px; }
+.loading-more { text-align: center; padding: 16px 0; }
+.no-more { text-align: center; padding: 16px 0; font-size: 13px; color: #999; }
 </style>

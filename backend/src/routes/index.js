@@ -7,10 +7,14 @@ const cartRoutes = require('./cart');
 const homeConfigRoutes = require('./homeConfig');
 const messageRoutes = require('./message');
 
+const { authMiddleware, adminMiddleware } = require('../middleware/auth');
+
 const router = Router();
 
 router.use('/auth', authRoutes);
 router.use('/messages', messageRoutes);
+router.get('/admin/users', authMiddleware, adminMiddleware, require('../controllers/productController').adminUserList);
+router.get('/admin/users/:id', authMiddleware, adminMiddleware, require('../controllers/productController').adminUserDetail);
 router.use('/products', productRoutes);
 router.use('/orders', orderRoutes);
 router.use('/addresses', addressRoutes);
