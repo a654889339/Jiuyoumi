@@ -1,11 +1,11 @@
 #!/bin/bash
-# 九柚米 - 检查运行状态
+# 九尤米 - 检查运行状态
 
 SSH_KEY="F:/ItsyourTurnMy/backend/deploy/test.pem"
 SERVER="ubuntu@106.54.50.88"
 SSH_OPTS="-o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa -o StrictHostKeyChecking=no"
 
-echo "=== 九柚米 容器状态 ==="
+echo "=== 九尤米 容器状态 ==="
 ssh $SSH_OPTS -i "$SSH_KEY" $SERVER "sudo docker ps --filter name=jiuyoumi --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'"
 
 echo ""

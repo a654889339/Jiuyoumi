@@ -1,6 +1,6 @@
 <view class="page-register">
   <view class="register-header">
-    <text class="brand-name">九柚米</text>
+    <text class="brand-name">九尤米</text>
     <text class="brand-sub">创建账号</text>
   </view>
 
@@ -12,6 +12,10 @@
     <view class="input-group">
       <text class="input-icon">🔒</text>
       <input class="form-input" placeholder="请输入密码（至少6位）" password="true" value="{{password}}" bindinput="onInput" data-field="password" />
+    </view>
+    <view class="input-group">
+      <text class="input-icon">🔒</text>
+      <input class="form-input" placeholder="请再次输入密码" password="true" value="{{confirmPassword}}" bindinput="onInput" data-field="confirmPassword" />
     </view>
     <view class="input-group">
       <text class="input-icon">😊</text>

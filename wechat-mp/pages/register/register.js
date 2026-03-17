@@ -2,7 +2,7 @@ const app = getApp();
 
 Page({
   data: {
-    username: '', password: '', nickname: '', email: '', emailCode: '', phone: '', smsCode: '',
+    username: '', password: '', confirmPassword: '', nickname: '', email: '', emailCode: '', phone: '', smsCode: '',
     registering: false,
     emailCooldown: 0, emailSending: false,
     smsCooldown: 0, smsSending: false,
@@ -56,6 +56,7 @@ Page({
     var d = that.data;
     if (!d.username || !d.password) { wx.showToast({ title: '请填写账号和密码', icon: 'none' }); return; }
     if (d.password.length < 6) { wx.showToast({ title: '密码至少6位', icon: 'none' }); return; }
+    if (d.password !== d.confirmPassword) { wx.showToast({ title: '两次输入的密码不一致', icon: 'none' }); return; }
     if (!d.email) { wx.showToast({ title: '请填写邮箱', icon: 'none' }); return; }
     if (!d.emailCode) { wx.showToast({ title: '请输入邮箱验证码', icon: 'none' }); return; }
     if (d.phone && d.phone.length === 11 && !d.smsCode) { wx.showToast({ title: '请输入短信验证码', icon: 'none' }); return; }

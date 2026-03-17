@@ -1,7 +1,7 @@
 {
   "name": "jiuyoumi-backend",
   "version": "1.0.0",
-  "description": "九柚米购物平台 - 后端API",
+  "description": "九尤米购物平台 - 后端API",
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",

@@ -2,13 +2,14 @@
   <div class="register-page">
     <van-nav-bar title="注册" left-arrow @click-left="$router.back()" />
     <div class="register-header">
-      <h1 class="brand">九柚米</h1>
+      <h1 class="brand">九尤米</h1>
       <h2>创建账号</h2>
     </div>
     <div class="register-form">
       <van-cell-group inset>
         <van-field v-model="form.username" label="账号" placeholder="请输入用户名（2-50字符）" left-icon="manager-o" maxlength="50" />
         <van-field v-model="form.password" type="password" label="密码" placeholder="请输入密码（至少6位）" left-icon="lock" autocomplete="new-password" />
+        <van-field v-model="form.confirmPassword" type="password" label="确认密码" placeholder="请再次输入密码" left-icon="lock" autocomplete="new-password" />
         <van-field v-model="form.nickname" label="昵称" placeholder="选填" left-icon="contact-o" maxlength="50" />
         <van-field v-model="form.email" label="邮箱" placeholder="请输入邮箱" left-icon="envelop-o" type="email">
           <template #button>
@@ -45,7 +46,7 @@ import { showToast } from 'vant';
 const router = useRouter();
 const userStore = useUserStore();
 const loading = ref(false);
-const form = reactive({ username: '', password: '', nickname: '', email: '', emailCode: '', phone: '', smsCode: '' });
+const form = reactive({ username: '', password: '', confirmPassword: '', nickname: '', email: '', emailCode: '', phone: '', smsCode: '' });
 
 const emailCooldown = ref(0);
 const emailSending = ref(false);
@@ -91,6 +92,7 @@ const sendSmsCode = async () => {
 const handleRegister = async () => {
   if (!form.username || !form.password) { showToast('请填写账号和密码'); return; }
   if (form.password.length < 6) { showToast('密码至少6位'); return; }
+  if (form.password !== form.confirmPassword) { showToast('两次输入的密码不一致'); return; }
   if (!form.email) { showToast('请填写邮箱地址'); return; }
   if (!form.emailCode) { showToast('请输入邮箱验证码'); return; }
   if (form.phone && form.phone.length === 11 && !form.smsCode) { showToast('请输入短信验证码'); return; }

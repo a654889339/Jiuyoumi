@@ -2,7 +2,7 @@
   <div class="login-page">
     <van-nav-bar title="登录" left-arrow @click-left="goBack" />
     <div class="login-header">
-      <h1 class="brand">九柚米</h1>
+      <h1 class="brand">九尤米</h1>
       <h2>欢迎回来</h2>
     </div>
     <div class="login-form">

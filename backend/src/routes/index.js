@@ -22,7 +22,7 @@ router.use('/cart', cartRoutes);
 router.use('/home-config', homeConfigRoutes);
 
 router.get('/health', (req, res) => {
-  res.json({ code: 0, message: '九柚米服务运行中', timestamp: new Date().toISOString() });
+  res.json({ code: 0, message: '九尤米服务运行中', timestamp: new Date().toISOString() });
 });
 
 module.exports = router;

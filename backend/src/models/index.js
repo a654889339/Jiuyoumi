@@ -76,7 +76,7 @@ const syncDatabase = async () => {
     const hcCount = await HomeConfig.count();
     if (hcCount === 0) {
       await HomeConfig.bulkCreate([
-        { section: 'banner', title: '九柚米 品质生活', desc: '精选好物，品质保障', color: 'linear-gradient(135deg, #667eea, #764ba2)', sortOrder: 1 },
+        { section: 'banner', title: '九尤米 品质生活', desc: '精选好物，品质保障', color: 'linear-gradient(135deg, #667eea, #764ba2)', sortOrder: 1 },
         { section: 'banner', title: '新人专享', desc: '首单立减20元', color: 'linear-gradient(135deg, #f093fb, #f5576c)', sortOrder: 2 },
         { section: 'nav', title: '全部商品', icon: 'apps-o', path: '/products', color: '#667eea', sortOrder: 1 },
         { section: 'nav', title: '新品', icon: 'fire-o', path: '/products?cat=new', color: '#f5576c', sortOrder: 2 },

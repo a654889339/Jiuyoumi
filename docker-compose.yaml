@@ -42,7 +42,7 @@ services:
       EMAIL_USERNAME: ${EMAIL_USERNAME}
       EMAIL_PASSWORD: ${EMAIL_PASSWORD}
       EMAIL_FROM: ${EMAIL_FROM}
-      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-九柚米}
+      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-九尤米}
 
   jiuyoumi-frontend:
     build: ./frontend

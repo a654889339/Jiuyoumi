@@ -15,7 +15,7 @@
       <div v-else class="hero-overlay">
         <img v-if="headerLogoUrl" :src="headerLogoUrl" class="hero-logo" alt="Logo" />
         <template v-else>
-          <h1 class="hero-title">九柚米</h1>
+          <h1 class="hero-title">九尤米</h1>
           <p class="hero-subtitle">精选好物，品质生活</p>
         </template>
       </div>

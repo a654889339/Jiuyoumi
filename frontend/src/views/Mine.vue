@@ -31,7 +31,7 @@
 
     <van-cell-group inset class="menu-group">
       <van-cell title="在线客服" icon="chat-o" is-link @click="openCustomerService" />
-      <van-cell title="关于九柚米" icon="info-o" is-link />
+      <van-cell title="关于九尤米" icon="info-o" is-link />
     </van-cell-group>
 
     <div class="logout-area" v-if="userStore.isLoggedIn">

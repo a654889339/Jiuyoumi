@@ -49,10 +49,10 @@ async function sendVerificationCode(email) {
   await transporter.sendMail({
     from,
     to: email,
-    subject: '九柚米 - 邮箱验证码',
+    subject: '九尤米 - 邮箱验证码',
     html: `
       <div style="max-width:480px;margin:0 auto;font-family:sans-serif;">
-        <div style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:20px 24px;border-radius:8px 8px 0 0;"><h2 style="margin:0;">九柚米</h2></div>
+        <div style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:20px 24px;border-radius:8px 8px 0 0;"><h2 style="margin:0;">九尤米</h2></div>
         <div style="border:1px solid #eee;border-top:none;padding:24px;border-radius:0 0 8px 8px;">
           <p>您好，您的邮箱验证码为：</p>
           <div style="text-align:center;margin:24px 0;"><span style="font-size:32px;font-weight:bold;letter-spacing:8px;color:#667eea;">${code}</span></div>

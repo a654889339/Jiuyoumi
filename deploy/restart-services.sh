@@ -1,5 +1,5 @@
 #!/bin/bash
-# 九柚米 - 仅重启前后端服务（不重启docker、不重启mysql）
+# 九尤米 - 仅重启前后端服务（不重启docker、不重启mysql）
 # 用于快速重启而不需要重新构建
 
 SSH_KEY="F:/ItsyourTurnMy/backend/deploy/test.pem"
