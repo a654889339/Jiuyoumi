@@ -24,7 +24,8 @@ exports.create = async (req, res) => {
     const item = await HomeConfig.create(data);
     res.json({ code: 0, data: item });
   } catch (err) {
-    res.status(500).json({ code: 500, message: '创建配置失败' });
+    const msg = (err && err.message) || '创建配置失败';
+    res.status(500).json({ code: 500, message: msg });
   }
 };
 
@@ -37,7 +38,8 @@ exports.update = async (req, res) => {
     await item.update(data);
     res.json({ code: 0, data: item });
   } catch (err) {
-    res.status(500).json({ code: 500, message: '更新配置失败' });
+    const msg = (err && err.message) || '更新配置失败';
+    res.status(500).json({ code: 500, message: msg });
   }
 };
 

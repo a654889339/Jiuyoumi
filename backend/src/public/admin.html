@@ -722,23 +722,25 @@ function closeHCEditor() { document.getElementById('hcModal').classList.remove('
 
 async function saveHC() {
   var id = document.getElementById('hcEditId').value;
+  var section = document.getElementById('hcSection').value;
+  var titleVal = (document.getElementById('hcTitle').value || '').trim();
+  if (!titleVal && section !== 'headerLogo' && section !== 'homeBg') { alert('请填写标题'); return; }
   var body = {
-    section: document.getElementById('hcSection').value,
-    title: document.getElementById('hcTitle').value,
-    desc: document.getElementById('hcDesc').value,
-    icon: document.getElementById('hcIcon').value,
-    color: document.getElementById('hcColor').value,
-    path: document.getElementById('hcPath').value,
+    section: section,
+    title: titleVal || (section === 'headerLogo' ? '首页Logo' : section === 'homeBg' ? '首页背景' : ''),
+    desc: (document.getElementById('hcDesc').value || '').trim(),
+    icon: (document.getElementById('hcIcon').value || '').trim(),
+    color: (document.getElementById('hcColor').value || '').trim(),
+    path: (document.getElementById('hcPath').value || '').trim(),
     sortOrder: parseInt(document.getElementById('hcSortOrder').value) || 0,
-    imageUrl: document.getElementById('hcImageUrl').value,
+    imageUrl: (document.getElementById('hcImageUrl').value || '').trim(),
     status: document.getElementById('hcStatus').value
   };
-  if (!body.title) { alert('请填写标题'); return; }
   try {
     var res = id ? await api('/api/home-config/' + id, { method: 'PUT', body: JSON.stringify(body) }) : await api('/api/home-config', { method: 'POST', body: JSON.stringify(body) });
     if (res.code === 0) { closeHCEditor(); loadHomeConfig(); }
     else alert(res.message || '保存失败');
-  } catch (e) { alert('保存失败'); }
+  } catch (e) { alert(e && e.message ? e.message : '保存失败'); }
 }
 
 async function uploadHCImage(input) {
