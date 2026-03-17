@@ -1,11 +1,7 @@
 const path = require('path');
-const fs = require('fs');
 const crypto = require('crypto');
 const Message = require('../models/Message');
 const User = require('../models/User');
-
-const uploadsDir = path.join(__dirname, '..', 'public', 'uploads');
-if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
 exports.myMessages = async (req, res) => {
   try {
@@ -43,13 +39,12 @@ exports.uploadImage = async (req, res) => {
     if (!req.file) return res.status(400).json({ code: 1, message: '请选择图片' });
     const ext = path.extname(req.file.originalname) || '.png';
     const filename = `chat_${Date.now()}_${crypto.randomBytes(4).toString('hex')}${ext}`;
-    const filepath = path.join(uploadsDir, filename);
-    fs.writeFileSync(filepath, req.file.buffer);
-    const url = '/uploads/' + filename;
+    const cosUpload = require('../utils/cosUpload');
+    const url = await cosUpload.upload(req.file.buffer, filename, req.file.mimetype);
     res.json({ code: 0, data: { url } });
   } catch (e) {
     console.error('[Message] uploadImage error:', e.message);
-    res.status(500).json({ code: 1, message: '上传失败' });
+    res.status(500).json({ code: 1, message: '上传失败: ' + e.message });
   }
 };
 

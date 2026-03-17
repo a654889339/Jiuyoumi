@@ -32,6 +32,10 @@ services:
       DB_USER: root
       DB_PASSWORD: jiuyoumi_secret_2024
       JWT_SECRET: ${JWT_SECRET:-jiuyoumi_jwt_secret_2024}
+      COS_SECRET_ID: ${COS_SECRET_ID}
+      COS_SECRET_KEY: ${COS_SECRET_KEY}
+      COS_BUCKET: jiuyoumi-1256887166
+      COS_REGION: ap-shanghai
 
   jiuyoumi-frontend:
     build: ./frontend

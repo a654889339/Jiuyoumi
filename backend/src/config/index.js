@@ -48,7 +48,7 @@ module.exports = {
   cos: {
     secretId: process.env.COS_SECRET_ID || '',
     secretKey: process.env.COS_SECRET_KEY || '',
-    bucket: process.env.COS_BUCKET || 'itsyourturnmy-1256887166',
-    region: process.env.COS_REGION || 'ap-singapore',
+    bucket: process.env.COS_BUCKET || 'jiuyoumi-1256887166',
+    region: process.env.COS_REGION || 'ap-shanghai',
   },
 };

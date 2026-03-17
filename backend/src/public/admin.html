@@ -141,8 +141,14 @@ tr:hover td { background: #f9fafb; }
 .pagination .page-info { font-size: 13px; color: var(--text-secondary); margin: 0 8px; }
 
 /* Media upload */
-.media-upload-zone { border: 2px dashed var(--border); border-radius: var(--radius); padding: 16px; text-align: center; margin-top: 6px; }
+.media-upload-zone { border: 2px dashed var(--border); border-radius: var(--radius); padding: 16px; text-align: center; margin-top: 6px; position: relative; min-height: 60px; }
 .media-upload-zone:hover { border-color: var(--primary); }
+.media-upload-zone.uploading { pointer-events: none; }
+.media-upload-loading { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,.9); border-radius: var(--radius); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 8px; z-index: 5; }
+.media-upload-zone.uploading .media-upload-loading { display: flex; }
+.media-upload-spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.media-upload-loading span { font-size: 13px; color: var(--text-secondary); }
 .media-preview-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 .media-preview-item { position: relative; width: 80px; height: 80px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
 .media-preview-item img { width: 100%; height: 100%; object-fit: cover; }
@@ -368,8 +374,12 @@ tr:hover td { background: #f9fafb; }
     <div class="form-group">
       <label>媒体文件（图片/视频）</label>
       <div class="media-upload-zone" id="mediaUploadZone">
+        <div class="media-upload-loading" id="mediaUploadLoading">
+          <div class="media-upload-spinner"></div>
+          <span id="mediaUploadStatus">上传中...</span>
+        </div>
         <input type="file" id="mediaFileInput" accept="image/*,video/*" multiple style="display:none" onchange="handleMediaUpload(this.files)">
-        <button class="btn btn-outline btn-sm" onclick="document.getElementById('mediaFileInput').click()">📁 选择文件上传</button>
+        <button class="btn btn-outline btn-sm" id="mediaUploadBtn" onclick="document.getElementById('mediaFileInput').click()">📁 选择文件上传</button>
         <span style="font-size:12px;color:var(--text-secondary);margin-left:8px">支持图片和视频，可多选</span>
       </div>
       <div class="media-preview-list" id="mediaPreviewList"></div>
@@ -798,10 +808,31 @@ function setAsCover(idx) {
   }
 }
 
+function showUploadToast(msg, isError) {
+  var el = document.createElement('div');
+  el.className = 'upload-toast' + (isError ? ' upload-toast-error' : '');
+  el.textContent = msg;
+  el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:8px;background:var(--card);box-shadow:0 4px 12px rgba(0,0,0,.15);z-index:9999;font-size:14px;color:var(--text);border:1px solid var(--border);max-width:90%;';
+  if (isError) el.style.background = '#fef2f2'; el.style.color = '#b91c1c';
+  document.body.appendChild(el);
+  setTimeout(function() { el.remove(); }, 3000);
+}
+
 async function handleMediaUpload(files) {
   if (!files || !files.length) return;
+  var zone = document.getElementById('mediaUploadZone');
+  var loadingEl = document.getElementById('mediaUploadLoading');
+  var statusEl = document.getElementById('mediaUploadStatus');
+  var btn = document.getElementById('mediaUploadBtn');
+  var total = files.length;
+  var ok = 0;
+  var fail = 0;
+  zone.classList.add('uploading');
+  loadingEl.style.display = 'flex';
+  btn.disabled = true;
   for (var i = 0; i < files.length; i++) {
     var file = files[i];
+    statusEl.textContent = '上传中 ' + (i + 1) + '/' + total + '：' + (file.name || '文件');
     var formData = new FormData();
     formData.append('file', file);
     try {
@@ -816,15 +847,27 @@ async function handleMediaUpload(files) {
             document.getElementById('pCoverImage').value = url;
           }
         }
+        ok++;
       } else {
-        alert('上传失败: ' + (data.message || '未知错误'));
+        fail++;
       }
     } catch(e) {
-      alert('上传出错: ' + e.message);
+      fail++;
     }
   }
+  zone.classList.remove('uploading');
+  loadingEl.style.display = 'none';
+  btn.disabled = false;
+  statusEl.textContent = '上传中...';
   renderMediaPreviews();
   document.getElementById('mediaFileInput').value = '';
+  if (fail === 0) {
+    showUploadToast('上传完成，共 ' + ok + ' 个文件');
+  } else if (ok === 0) {
+    showUploadToast('上传失败，请检查网络或文件大小', true);
+  } else {
+    showUploadToast('上传完成：成功 ' + ok + ' 个，失败 ' + fail + ' 个', true);
+  }
 }
 
 async function submitProduct() {
