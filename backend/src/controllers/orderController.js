@@ -292,6 +292,30 @@ exports.adminUpdateTracking = async (req, res) => {
   }
 };
 
+exports.adminUpdateAmount = async (req, res) => {
+  try {
+    const totalPrice = parseFloat(req.body.totalPrice);
+    if (Number.isNaN(totalPrice) || totalPrice < 0) {
+      return res.status(400).json({ code: 400, message: '无效金额' });
+    }
+    const order = await Order.findByPk(req.params.id);
+    if (!order) return res.status(404).json({ code: 404, message: '订单不存在' });
+    const oldPrice = Number(order.totalPrice) || 0;
+    order.totalPrice = totalPrice;
+    await order.save();
+    await OrderHistory.create({
+      orderId: order.id,
+      oldStatus: 'amount_change',
+      newStatus: '',
+      operatorId: req.user && req.user.id,
+      remark: '金额由 ' + oldPrice.toFixed(2) + ' 改为 ' + totalPrice.toFixed(2),
+    });
+    res.json({ code: 0, data: order });
+  } catch (err) {
+    res.status(500).json({ code: 500, message: '更新金额失败' });
+  }
+};
+
 exports.adminGetOrderHistory = async (req, res) => {
   try {
     const histories = await OrderHistory.findAll({
@@ -301,8 +325,8 @@ exports.adminGetOrderHistory = async (req, res) => {
     const statusMap = STATUS_MAP;
     const list = histories.map(h => ({
       ...h.toJSON(),
-      oldStatusText: (statusMap[h.oldStatus] && statusMap[h.oldStatus].text) || h.oldStatus,
-      newStatusText: (statusMap[h.newStatus] && statusMap[h.newStatus].text) || h.newStatus,
+      oldStatusText: h.oldStatus === 'amount_change' ? '金额变更' : ((statusMap[h.oldStatus] && statusMap[h.oldStatus].text) || h.oldStatus),
+      newStatusText: h.oldStatus === 'amount_change' ? (h.remark || '') : ((statusMap[h.newStatus] && statusMap[h.newStatus].text) || h.newStatus),
     }));
     res.json({ code: 0, data: list });
   } catch (err) {

@@ -71,6 +71,8 @@ tr:hover td { background: #f9fafb; }
 .badge-danger { background: #fee2e2; color: #991b1b; }
 .badge-info { background: #dbeafe; color: #1e40af; }
 .badge-gray { background: #f3f4f6; color: #4b5563; }
+.badge-clickable { cursor: pointer; }
+.order-amount { cursor: pointer; }
 
 .btn { padding: 7px 16px; border: none; border-radius: var(--radius); font-size: 13px; font-weight: 500; transition: all .15s; }
 .btn-primary { background: var(--primary); color: #fff; }
@@ -971,16 +973,16 @@ function renderOrders(orders) {
     var label = sm[0], cls = sm[1];
     var tracking = o.trackingNo ? ((o.trackingCompany || '') + ' ' + o.trackingNo) : '-';
     var username = (o.user && (o.user.nickname || o.user.username)) || '-';
+    var amount = Number(o.totalPrice || o.totalAmount || 0).toFixed(2);
     return '<tr>' +
       '<td style="font-family:monospace;font-size:12px">' + esc(o.orderNo || String(o.id)) + '</td>' +
       '<td>' + esc(username) + '</td>' +
-      '<td>¥' + Number(o.totalPrice || o.totalAmount || 0).toFixed(2) + '</td>' +
-      '<td><span class="badge ' + cls + '">' + label + '</span></td>' +
+      '<td class="order-amount" data-order-id="' + o.id + '" data-amount="' + amount + '" ondblclick="editOrderAmount(this)" title="双击修改金额">¥' + amount + '</td>' +
+      '<td><span class="badge ' + cls + ' badge-clickable" onclick="openOrderStatusModal(\'' + o.id + '\',\'' + (o.status || '') + '\')" title="点击修改状态">' + label + '</span></td>' +
       '<td style="font-size:12px">' + esc(tracking) + '</td>' +
       '<td style="font-size:12px">' + formatTime(o.createdAt) + '</td>' +
       '<td class="flex gap-2">' +
         '<button class="btn btn-sm btn-outline" onclick="openOrderHistory(\'' + o.id + '\')">历史</button>' +
-        '<button class="btn btn-sm btn-outline" onclick="openOrderStatusModal(\'' + o.id + '\',\'' + (o.status || '') + '\')">改状态</button>' +
         (o.status === 'paid' ? '<button class="btn btn-sm btn-success" onclick="openTracking(\'' + o.id + '\')">发货</button>' : '') +
         (o.status === 'shipped' ? '<button class="btn btn-sm btn-outline" onclick="openTracking(\'' + o.id + '\')">改物流</button>' : '') +
       '</td>' +
@@ -1068,6 +1070,24 @@ async function submitOrderStatus() {
     closeModal('orderStatusModal');
     loadOrders();
   } catch(e) { alert('更新失败: ' + (e.message || e)); }
+}
+
+function editOrderAmount(el) {
+  var orderId = el.getAttribute('data-order-id');
+  var cur = el.getAttribute('data-amount') || '0';
+  var v = prompt('修改订单金额', cur);
+  if (v === null) return;
+  var num = parseFloat(String(v).replace(/[^0-9.-]/g, ''));
+  if (Number.isNaN(num) || num < 0) { alert('请输入有效金额'); return; }
+  (async function() {
+    try {
+      await api('/api/orders/admin/' + orderId + '/amount', {
+        method: 'PUT',
+        body: JSON.stringify({ totalPrice: num }),
+      });
+      loadOrders();
+    } catch(e) { alert('更新失败: ' + (e.message || e)); }
+  })();
 }
 
 /* ── Products ── */

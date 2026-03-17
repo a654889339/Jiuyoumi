@@ -1,7 +1,7 @@
 <template>
   <div class="checkout-page">
     <van-nav-bar title="确认订单" left-arrow @click-left="$router.back()" />
-    <div class="address-card" @click="$router.push('/address')">
+    <div class="address-card" @click="goSelectAddress">
       <template v-if="selectedAddress">
         <van-icon name="location-o" size="20" color="#667eea" />
         <div class="address-info">
@@ -69,11 +69,22 @@ const fullAddress = (addr) => {
   return parts.join(' ');
 };
 
+function goSelectAddress() {
+  router.push({ path: '/address', query: { select: '1', ...route.query } });
+}
+
 onMounted(async () => {
   try {
     const res = await addressApi.list();
     const addrs = res.data || [];
-    selectedAddress.value = addrs.find(a => a.isDefault) || addrs[0] || null;
+    const savedId = sessionStorage.getItem('checkout_address_id');
+    if (savedId) {
+      sessionStorage.removeItem('checkout_address_id');
+      const found = addrs.find(a => String(a.id) === savedId);
+      selectedAddress.value = found || addrs.find(a => a.isDefault) || addrs[0] || null;
+    } else {
+      selectedAddress.value = addrs.find(a => a.isDefault) || addrs[0] || null;
+    }
   } catch { /* empty */ }
 
   if (route.query.productId) {

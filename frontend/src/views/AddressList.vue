@@ -1,36 +1,62 @@
 <template>
   <div class="address-list">
-    <van-nav-bar title="地址管理" left-arrow @click-left="$router.back()" />
+    <van-nav-bar :title="isSelectMode ? '选择收货地址' : '地址管理'" left-arrow @click-left="onBack" />
     <van-loading v-if="loading" class="page-loading" size="28" vertical>加载中...</van-loading>
     <van-empty v-else-if="!addresses.length" description="暂无收货地址" />
     <div v-else class="list">
       <div v-for="addr in addresses" :key="addr.id" class="address-card">
-        <div class="addr-main" @click="$router.push(`/address/edit/${addr.id}`)">
+        <div class="addr-main" @click="onAddressClick(addr)">
           <div class="addr-info">
             <p class="contact">{{ addr.contactName }} <span>{{ addr.contactPhone }}</span></p>
             <p class="detail">{{ formatAddr(addr) }}</p>
           </div>
           <van-tag v-if="addr.isDefault" type="primary" size="medium" color="#667eea">默认</van-tag>
         </div>
-        <div class="addr-actions">
-          <span @click="setDefault(addr)" v-if="!addr.isDefault">设为默认</span>
-          <span @click="removeAddr(addr)" class="danger">删除</span>
+        <div v-if="!isSelectMode" class="addr-actions">
+          <span @click.stop="setDefault(addr)" v-if="!addr.isDefault">设为默认</span>
+          <span @click.stop="removeAddr(addr)" class="danger">删除</span>
         </div>
       </div>
     </div>
-    <div class="add-btn-area">
+    <div v-if="!isSelectMode" class="add-btn-area">
       <van-button type="primary" color="linear-gradient(135deg, #667eea, #764ba2)" block round icon="plus" @click="$router.push('/address/add')">新增地址</van-button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { addressApi } from '@/api';
 import { showToast, showConfirmDialog } from 'vant';
 
+const route = useRoute();
+const router = useRouter();
 const loading = ref(true);
 const addresses = ref([]);
+
+const isSelectMode = computed(() => route.query.select === '1');
+
+function onBack() {
+  if (isSelectMode.value) {
+    const q = { ...route.query };
+    delete q.select;
+    router.replace({ path: '/checkout', query: q });
+  } else {
+    router.back();
+  }
+}
+
+function onAddressClick(addr) {
+  if (isSelectMode.value) {
+    sessionStorage.setItem('checkout_address_id', String(addr.id));
+    const q = { ...route.query };
+    delete q.select;
+    router.replace({ path: '/checkout', query: q });
+  } else {
+    router.push(`/address/edit/${addr.id}`);
+  }
+}
 
 const formatAddr = (addr) => {
   const parts = [];
