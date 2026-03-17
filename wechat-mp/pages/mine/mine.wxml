@@ -35,11 +35,11 @@
   <!-- 统计栏 -->
   <view class="stats-bar card" wx:if="{{isLogin}}">
     <view class="stat-item" bindtap="goOrders" data-status="pending">
-      <text class="stat-icon">💰</text>
+      <text class="stat-num">{{stats.pending}}</text>
       <text class="stat-label">待支付</text>
     </view>
     <view class="stat-item" bindtap="goOrders" data-status="shipped">
-      <text class="stat-icon">🚚</text>
+      <text class="stat-num">{{stats.shipped}}</text>
       <text class="stat-label">已发货</text>
     </view>
     <view class="stat-item" bindtap="goOrders" data-status="review">

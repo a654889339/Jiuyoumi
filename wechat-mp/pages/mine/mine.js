@@ -19,6 +19,7 @@ Page({
     if (app.globalData.token) {
       this.setData({ isLogin: true });
       this.loadProfile();
+      this.loadOrderCounts();
     } else {
       this.setData({ isLogin: false, userInfo: null });
     }
@@ -30,6 +31,21 @@ Page({
       const userInfo = res.data;
       app.globalData.userInfo = userInfo;
       this.setData({ userInfo });
+    } catch (e) {}
+  },
+
+  async loadOrderCounts() {
+    try {
+      const [pendingRes, shippedRes] = await Promise.all([
+        app.request({ url: '/orders/mine?status=pending&page=1&pageSize=1' }),
+        app.request({ url: '/orders/mine?status=shipped&page=1&pageSize=1' }),
+      ]);
+      const pending = (pendingRes.data && pendingRes.data.total) || 0;
+      const shipped = (shippedRes.data && shippedRes.data.total) || 0;
+      this.setData({
+        'stats.pending': pending,
+        'stats.shipped': shipped,
+      });
     } catch (e) {}
   },
 

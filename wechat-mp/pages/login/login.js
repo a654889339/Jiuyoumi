@@ -82,8 +82,21 @@ Page({
     var that = this;
     that.setData({ logging: true });
     try {
+      var userProfile = null;
+      if (wx.getUserProfile) {
+        try {
+          userProfile = await new Promise(function(resolve, reject) {
+            wx.getUserProfile({ desc: '用于展示头像与昵称', success: resolve, fail: reject });
+          });
+        } catch (e) { /* 用户拒绝或接口不可用 */ }
+      }
       var loginRes = await new Promise(function(resolve, reject) { wx.login({ success: resolve, fail: reject }); });
-      var res = await app.request({ url: '/auth/wx-login', method: 'POST', data: { code: loginRes.code } });
+      var payload = { code: loginRes.code };
+      if (userProfile && userProfile.userInfo) {
+        payload.avatarUrl = userProfile.userInfo.avatarUrl || '';
+        payload.nickName = userProfile.userInfo.nickName || '';
+      }
+      var res = await app.request({ url: '/auth/wx-login', method: 'POST', data: payload });
       that.loginSuccess(res);
     } catch (e) { wx.showToast({ title: (e && e.message) || '微信登录失败', icon: 'none' }); }
     finally { that.setData({ logging: false }); }

@@ -72,17 +72,37 @@ const onProfileHeaderClick = () => {
   else router.push('/login');
 };
 
-const stats = [
+const stats = ref([
   { label: '待支付', value: 0, path: '/orders' },
   { label: '已发货', value: 0, path: '/orders' },
   { label: '待评价', value: 0, path: '/orders' },
   { label: '售后', value: 0, path: '/orders' },
-];
+]);
+
+async function loadOrderCounts() {
+  if (!userStore.isLoggedIn) return;
+  try {
+    const { orderApi } = await import('@/api');
+    const [pendingRes, shippedRes] = await Promise.all([
+      orderApi.mine({ status: 'pending', page: 1, pageSize: 1 }),
+      orderApi.mine({ status: 'shipped', page: 1, pageSize: 1 }),
+    ]);
+    const pendingTotal = pendingRes.data?.total ?? 0;
+    const shippedTotal = shippedRes.data?.total ?? 0;
+    stats.value = [
+      { label: '待支付', value: pendingTotal, path: '/orders' },
+      { label: '已发货', value: shippedTotal, path: '/orders' },
+      { label: '待评价', value: 0, path: '/orders' },
+      { label: '售后', value: 0, path: '/orders' },
+    ];
+  } catch { /* ignore */ }
+}
 
 onMounted(async () => {
   if (userStore.isLoggedIn && !userStore.userInfo) {
     try { await userStore.fetchProfile(); } catch { userStore.logout(); }
   }
+  loadOrderCounts();
 });
 
 const handleLogout = () => { userStore.logout(); router.push('/'); };

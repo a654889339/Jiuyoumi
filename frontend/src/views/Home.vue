@@ -21,7 +21,7 @@
       </div>
     </div>
 
-    <div class="section card-section">
+    <div class="section card-section nav-section" :style="navSectionStyle">
       <div class="section-header">
         <h3>快捷导航</h3>
       </div>
@@ -92,6 +92,8 @@ const banners = ref([]);
 const headerLogoUrl = ref('');
 const homeBgUrl = ref('');
 const heroStyle = ref({});
+const navOpacity = ref(1);
+const navSectionStyle = ref({});
 
 const recommends = ref([
   { title: '新人礼包', desc: '首单立减', icon: 'gift-o', bg: 'linear-gradient(135deg, #667eea, #764ba2)' },
@@ -122,6 +124,10 @@ onMounted(async () => {
     homeBgUrl.value = bg?.imageUrl || '';
     if (homeBgUrl.value) heroStyle.value = { backgroundImage: `url(${homeBgUrl.value})`, backgroundSize: 'cover', backgroundPosition: 'center' };
     else heroStyle.value = {};
+    const opacityItem = items.find(i => i.section === 'navOpacity' && i.status === 'active');
+    const opacityVal = opacityItem?.desc != null ? parseFloat(opacityItem.desc) : 1;
+    navOpacity.value = Number.isNaN(opacityVal) || opacityVal <= 0 ? 1 : Math.min(1, opacityVal);
+    navSectionStyle.value = { opacity: navOpacity.value };
   } catch { /* empty */ }
 });
 </script>
@@ -134,7 +140,7 @@ onMounted(async () => {
 }
 
 .hero {
-  height: 220px;
+  height: 440px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
   align-items: center;
@@ -143,7 +149,7 @@ onMounted(async () => {
 }
 
 .hero-swipe { width: 100%; height: 100%; }
-.hero-swipe :deep(.van-swipe-item) { height: 220px; }
+.hero-swipe :deep(.van-swipe-item) { height: 440px; }
 .banner-item { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; }
 .banner-img { width: 100%; height: 100%; object-fit: cover; }
 .banner-text { text-align: center; color: #fff; padding: 20px; }

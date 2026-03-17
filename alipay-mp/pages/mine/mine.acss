@@ -80,8 +80,14 @@
   gap: 8rpx;
 }
 
-.stat-icon {
+.stat-icon,
+.stat-num {
   font-size: 44rpx;
+}
+
+.stat-num {
+  font-weight: 700;
+  color: #333;
 }
 
 .stat-label {

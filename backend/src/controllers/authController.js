@@ -106,7 +106,7 @@ exports.login = async (req, res) => {
 
 exports.wxLogin = async (req, res) => {
   try {
-    const { code } = req.body;
+    const { code, avatarUrl, nickName } = req.body;
     if (!code) return res.status(400).json({ code: 400, message: 'code不能为空' });
     const { appId, appSecret } = config.wechat || {};
     if (!appId || !appSecret) {
@@ -130,8 +130,12 @@ exports.wxLogin = async (req, res) => {
       const crypto = require('crypto');
       const shortId = crypto.randomBytes(4).toString('hex');
       const randomPwd = crypto.randomBytes(16).toString('hex');
-      user = await User.create({ username: `wx_${shortId}`, password: randomPwd, nickname: '微信用户', openid, email: null });
+      user = await User.create({ username: `wx_${shortId}`, password: randomPwd, nickname: nickName ? String(nickName).trim() : '微信用户', openid, avatar: avatarUrl ? String(avatarUrl).trim() : '', email: null });
       isNew = true;
+    } else {
+      if (avatarUrl !== undefined && String(avatarUrl).trim()) user.avatar = String(avatarUrl).trim();
+      if (nickName !== undefined && String(nickName).trim()) user.nickname = String(nickName).trim();
+      await user.save({ hooks: false });
     }
     const token = generateToken(user);
     res.json({ code: 0, data: { token, user, isNew } });
@@ -143,7 +147,7 @@ exports.wxLogin = async (req, res) => {
 
 exports.alipayLogin = async (req, res) => {
   try {
-    const { code } = req.body;
+    const { code, avatarUrl, nickName } = req.body;
     if (!code) return res.status(400).json({ code: 400, message: 'code不能为空' });
     const { appId, privateKey, publicKey } = config.alipay || {};
     if (!appId || !privateKey) {
@@ -160,8 +164,12 @@ exports.alipayLogin = async (req, res) => {
       const crypto = require('crypto');
       const shortId = crypto.randomBytes(4).toString('hex');
       const randomPwd = crypto.randomBytes(16).toString('hex');
-      user = await User.create({ username: `ali_${shortId}`, password: randomPwd, nickname: '支付宝用户', alipayId: userId, email: null });
+      user = await User.create({ username: `ali_${shortId}`, password: randomPwd, nickname: nickName ? String(nickName).trim() : '支付宝用户', alipayId: userId, avatar: avatarUrl ? String(avatarUrl).trim() : '', email: null });
       isNew = true;
+    } else {
+      if (avatarUrl !== undefined && String(avatarUrl).trim()) user.avatar = String(avatarUrl).trim();
+      if (nickName !== undefined && String(nickName).trim()) user.nickname = String(nickName).trim();
+      await user.save({ hooks: false });
     }
     const token = generateToken(user);
     res.json({ code: 0, data: { token, user, isNew } });
@@ -178,6 +186,22 @@ exports.getProfile = async (req, res) => {
     res.json({ code: 0, data: user });
   } catch (err) {
     res.status(500).json({ code: 500, message: '获取用户信息失败' });
+  }
+};
+
+exports.uploadAvatar = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ code: 400, message: '请选择图片' });
+    const path = require('path');
+    const crypto = require('crypto');
+    const ext = path.extname(req.file.originalname) || '.png';
+    const filename = `avatar_${req.user.id}_${Date.now()}_${crypto.randomBytes(4).toString('hex')}${ext}`;
+    const cosUpload = require('../utils/cosUpload');
+    const url = await cosUpload.upload(req.file.buffer, filename, req.file.mimetype);
+    res.json({ code: 0, data: { url } });
+  } catch (err) {
+    console.error('[Auth] uploadAvatar error:', err.message);
+    res.status(500).json({ code: 500, message: '上传失败: ' + err.message });
   }
 };
 

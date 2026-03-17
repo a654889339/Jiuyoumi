@@ -7,6 +7,11 @@ export const authApi = {
   sendSmsCode: (phone) => request.post('/auth/send-sms-code', { phone }),
   getProfile: () => request.get('/auth/profile'),
   updateProfile: (data) => request.put('/auth/profile', data),
+  uploadAvatar: (file) => {
+    const fd = new FormData();
+    fd.append('avatar', file);
+    return request.post('/auth/upload-avatar', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+  },
 };
 
 export const productApi = {
